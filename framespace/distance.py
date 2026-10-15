@@ -52,8 +52,9 @@ def sq_norm(x):
     return (x ** 2).sum((-1, -2, -3))
 
 
-def align(x, y, starts=None, n_random=127, iters=10, seed=0):
+def align(x, y, starts=None, n_random=127, iters=10, seed=0, improve_tol=1e-7):
     """x (P, n, 3, 3), y (P, m, 3, 3) (또는 묶음 없이 (n, 3, 3)). starts (P, s, 3, 3) 를 주지 않으면 항등 + 무작위 n_random 개.
+    iters: 대응과 회전을 번갈아 푸는 최대 횟수. improve_tol: 이보다 덜 오르면(상대값) 그 출발점은 멈춘다. seed: 무작위 출발 회전의 씨앗.
     반환 Alignment (점수 S, 회전 U, 짝)."""
     single = x.dim() == 3
     if single:
@@ -77,7 +78,7 @@ def align(x, y, starts=None, n_random=127, iters=10, seed=0):
             S = dp_score(K)
             G, = torch.autograd.grad(S.sum(), K)
         with torch.no_grad():
-            imp = S > best + 1e-7 * (1 + best.abs())
+            imp = S > best + improve_tol * (1 + best.abs())
             best = torch.where(imp, S, best)
             bU = torch.where(imp[..., None, None], U, bU)
             bG = G if bG is None else torch.where(imp[..., None, None], G, bG)

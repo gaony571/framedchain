@@ -12,8 +12,20 @@
 - **평균 점** (2.4, 3.5절): 대응이 고정된 묶음(한 단백질의 앙상블)을 평균에 정렬하고 항별로 평균 내기를 되풀이한다. 평균 점은 공간의 점이고 특이값이 줄어든 정도가 흩어짐이다.
 - **표** (2.7절): G_ij = x_iᵀ x_j, δ_i = det x_i. 전체 회전에 정확히 불변이고 실제 구조에서는 표에서 프레임 열을 되찾는다.
 - **눈금** (2.5절): d / √(0.75(n+m)), sim_long = S / (0.75 max(n, m)), d_fix / √(2n).
+- **PDB 읽기**: N, Cα, C, O 가 모두 있는 잔기만, 여러 MODEL 은 묶음으로, 끝 캡(ACE, NME, NHE)은 뺀다. altLoc 은 처음 것. 사슬이 끊긴 곳은 확인하지 않는다(긴 변으로 나타난다).
 
-넣지 않은 것: 중간 점을 구조로 되돌리기(문턱을 정하지 않았다, 2.4절), 파일 읽기.
+넣지 않은 것: 중간 점을 구조로 되돌리기(문턱을 정하지 않았다, 2.4절).
+
+## 바꿀 수 있는 값
+
+| 어디 | 값 (기본) |
+|---|---|
+| 좌표 | `l0` (3.83 Å, 길이 비의 기준), `cis_max` (3.45 Å), `caps` (끝 캡 잔기 이름), `is_real(tol=1e-3)`, `n_edges(eps=1e-12)`, `from_table(eps=1e-12)` |
+| 거리 (`align`, `sq_distance`, `distance` 에 키워드로) | `n_random` (127, 항등과 합쳐 출발 128개), `starts` (출발 회전을 직접), `iters` (10), `seed` (0), `improve_tol` (1e-7) |
+| 보증 (`bnb`) | `rel_tol` (0.005, sim_long 단위) 또는 `tol` (S 절대값), `n_starts` (128), `level0` (3), `n_refine` (16), `max_cells` (2,000,000), `batch`, `iters` (10), `device` |
+| 평균 점 | `iters` (3) |
+
+`l0` 를 바꾸면 좌표를 만들 때와 Cα·변 길이·시스를 읽을 때 같은 값을 줘야 한다. 프레임과 길이 비를 읽는 `frames_of`, 실제 구조 판별 `is_real` 은 `l0` 와 무관하다.
 
 ## 설치
 
@@ -27,7 +39,8 @@ pip install -e .[test]    # pytest
 ```python
 import framespace as fs
 
-x = fs.coordinates_from_backbone(CA, C, O)     # 잔기마다 Cα, C, O (F, L, 3) -> (F, L−1, 3, 3)
+x = fs.coordinates_from_pdb('a.pdb')           # PDB (MODEL F 개) -> (F, L−1, 3, 3)
+y = fs.coordinates_from_backbone(CA, C, O)     # 잔기마다 Cα, C, O (F, L, 3) -> (F, L−1, 3, 3)
 d, al = fs.distance(x[0], y[0])                 # 거리와 정렬 (점수 S, 회전 U, 짝)
 cert = fs.bnb(x[0], y[0])                       # 전역 최적 보증
 a, b, cols = fs.aligned_columns(x[0], y[0], alignment=al)
@@ -42,7 +55,7 @@ CA0 = fs.ca_trace(x[0])                         # 좌표에서 Cα
 | 모듈 | 내용 |
 |---|---|
 | `geometry` | 회전, 사원수, Procrustes, 극분해 |
-| `frames` | 원자에서 프레임과 좌표, 변의 길이, 시스 판별, 실제 구조 판별, Cα 복원 |
+| `frames` | PDB 읽기, 원자에서 프레임과 좌표, 변의 길이, 시스 판별, 실제 구조 판별, Cα 복원 |
 | `distance` | 대응 DP, 대응과 회전의 교대 최적화(묶음, GPU), 거리, d_fix, 눈금, 영 채움 |
 | `certify` | 분기 한정 보증 |
 | `operations` | 열 맞추기, 직선, 평균 점 |
@@ -54,4 +67,4 @@ CA0 = fs.ca_trace(x[0])                         # 좌표에서 Cα
 pytest tests
 ```
 
-합성 구조(트랜스와 시스 길이 포함)로: 사원수, Procrustes·극분해, 원자 ↔ 좌표 ↔ Cα 왕복과 길이·시스, 자기 거리 0과 대칭, 회전 불변, 영행렬 끼우기 불변, 잘라내기 법칙, 변 줄이기 법칙, 삼각부등식, 직선이 최단 경로, d_fix 가 상계, 눈금, 평균 점, 표의 불변과 되찾기, 보증.
+합성 구조(트랜스와 시스 길이 포함)로: 사원수, Procrustes·극분해, 원자 ↔ 좌표 ↔ Cα 왕복과 길이·시스, PDB 왕복, l0·시스 경계 바꾸기, 자기 거리 0과 대칭, 회전 불변, 영행렬 끼우기 불변, 잘라내기 법칙, 변 줄이기 법칙, 삼각부등식, 직선이 최단 경로, d_fix 가 상계, 눈금, 평균 점, 표의 불변과 되찾기, 보증.

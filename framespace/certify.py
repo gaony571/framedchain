@@ -21,9 +21,11 @@ def _frames_and_scale(x):
     return 2.0 * x / s[:, None, None], s
 
 
-def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, device=None, verbose=False):
+def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, level0=3, n_refine=16, batch=None, iters=10, device=None, verbose=False):
     """x (n, 3, 3), y (m, 3, 3) 는 실제 구조. S 의 전역 최댓값을 허용 폭 안에서 보증한다.
     허용 폭은 tol (S 의 절대값) 또는 rel_tol × 0.75 max(n, m) (sim_long 단위, 기본 0.005).
+    n_starts: 처음 하한을 잡는 출발 회전 수. level0: 첫 칸 나눔 (한 축 2^level0 칸). n_refine: 단계마다 하한을 다듬을 칸 수.
+    max_cells: 남은 칸이 이보다 많아지면 멈춘다(보증 실패). batch: 한 번에 계산할 칸 수 (기본은 n·m 에 맞춤).
     반환: S_heur (출발 회전 n_starts 개의 값), S_lb, S_ub, tol, certified, 칸의 단계, DP 횟수, 시간."""
     t0 = time.time()
     dev = device or (x.device if torch.is_tensor(x) else 'cpu')
@@ -37,14 +39,13 @@ def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, device
     W = sx[:, None] * sy[None]                                                     # (n, m)
     n, m = len(x), len(y)
     tol = rel_tol * 0.75 * max(n, m) if tol is None else tol
-    S_h = LB = float(align(x, y, n_random=n_starts - 1).score)
-    bs = int(max(64, min(20000, 2.5e8 / (n * m))))
-    L0 = 3
-    sg = np.pi / 2 ** L0
-    ax = (np.arange(2 ** L0) + 0.5) * 2 * sg - np.pi
+    S_h = LB = float(align(x, y, n_random=n_starts - 1, iters=iters).score)
+    bs = batch or int(max(64, min(20000, 2.5e8 / (n * m))))
+    sg = np.pi / 2 ** level0
+    ax = (np.arange(2 ** level0) + 0.5) * 2 * sg - np.pi
     cen = np.stack(np.meshgrid(ax, ax, ax, indexing='ij'), -1).reshape(-1, 3)
     off = np.array([[i, j, k] for i in (-1, 1) for j in (-1, 1) for k in (-1, 1)]) * 0.5
-    ndp, level, certified, hist = 0, L0, False, []
+    ndp, level, certified, hist = 0, level0, False, []
     while True:
         cen = cen[np.linalg.norm(np.maximum(np.abs(cen) - sg, 0), axis=1) <= np.pi]
         rho = np.sqrt(3) * sg / 2
@@ -57,9 +58,9 @@ def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, device
                 UB[i:i + bs] = dp_score(W * (torch.cos((torch.acos(dot) - rho).clamp_min(0)) ** 2 - 0.25)).cpu().numpy() + 1e-9
                 CV[i:i + bs] = dp_score(W * (dot ** 2 - 0.25)).cpu().numpy()
                 ndp += 2 * len(u0)
-        top = np.argsort(-CV)[:16]
+        top = np.argsort(-CV)[:n_refine]
         U0 = quat_to_mat(rotvec_to_quat(torch.tensor(cen[top], device=dev, dtype=torch.float64)))
-        LB = max(LB, float(align(x, y, starts=U0).score), float(CV.max()))
+        LB = max(LB, float(align(x, y, starts=U0, iters=iters).score), float(CV.max()))
         keep = UB > LB + tol
         hist.append((level, len(cen), int(keep.sum()), float(UB.max()), LB))
         if verbose:

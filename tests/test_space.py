@@ -48,6 +48,35 @@ def test_coordinates_roundtrip():
     assert np.allclose((x ** 2).sum((-1, -2)), 0.75 * s ** 2)
 
 
+def test_pdb_roundtrip(tmp_path):
+    x = chain(25, 4, cis=(6,)).numpy()
+    CA = fs.ca_trace(x)
+    R, s = fs.frames_of(x)
+    C = np.concatenate([CA[:-1] + R @ LOC_C, CA[-1:] + 1.0])
+    O = np.concatenate([CA[:-1] + R @ LOC_O, CA[-1:] + 2.0])
+    N = CA - 1.0
+    p = tmp_path / 'x.pdb'
+    with open(p, 'w') as f:
+        k = 0
+        for i in range(len(CA)):
+            for name, xyz in (('N', N[i]), ('CA', CA[i]), ('C', C[i]), ('O', O[i])):
+                k += 1
+                f.write('ATOM  %5d  %-3s ALA A%4d    %8.3f%8.3f%8.3f  1.00  0.00\n' % (k, name, i + 1, *xyz))
+    xp = fs.coordinates_from_pdb(str(p))
+    assert xp.shape == (1, 25, 3, 3) and np.allclose(xp[0], x, atol=2e-3) and fs.is_cis(xp[0])[6]
+
+
+def test_settable_constants():
+    """l0 와 시스 경계를 바꿀 수 있다. l0 를 바꿔도 Cα 복원은 같은 l0 로 하면 그대로다."""
+    x = chain(12, 5, cis=(3,)).numpy()
+    CA = fs.ca_trace(x)
+    R, s = fs.frames_of(x)
+    l = s * fs.L0
+    x2 = fs.to_coordinates(R, l, l0=3.80)
+    assert np.allclose(fs.ca_trace(x2, l0=3.80), CA) and np.allclose(fs.edge_lengths(x2, l0=3.80), l)
+    assert fs.is_cis(x).sum() == 1 and fs.is_cis(x, cis_max=2.0).sum() == 0
+
+
 def test_self_and_symmetry():
     x, y = chain(25, 1), chain(31, 2)
     d0, _ = fs.distance(x, x)
