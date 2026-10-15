@@ -165,6 +165,26 @@ def test_mean_point_of_rotated_copies():
     assert float(d2) < 1e-10
 
 
+def test_mean_point_converges_and_ignores_start():
+    """흩어진 앙상블: 수렴하고, 시작 구조를 바꿔도 회전 하나 차이의 같은 평균, 그 평균은 정렬·평균의 고정점."""
+    x = chain(16, 14)
+    g = torch.Generator().manual_seed(15)
+    E = torch.stack([torch.einsum('xy,nyz->nxz', fs.random_rotations(1, seed=20 + f)[0],
+                                  torch.einsum('nxy,nyz->nxz', x, fs.expmap(0.3 * torch.randn(16, 3, generator=g, dtype=torch.float64))))
+                     for f in range(10)])
+    ms = []
+    for s in (0, 4, 9):
+        m, info = fs.mean_point(E, start=s, return_info=True)
+        assert info['converged']
+        ms.append(m)
+    for m in ms[1:]:
+        assert float(fs.fixed_sq_distance(ms[0][None], m[None])[0, 0]) < 1e-12
+    m = ms[0]
+    assert float((fs.align_to_reference(E, m).mean(0) - m).norm()) < 1e-8
+    sv = torch.linalg.svdvals(m)
+    assert float(sv.max()) <= 0.5 * float(x[:, :, 0].norm(dim=-1).max() * 2) + 1e-12 and float(sv.min()) < 0.49
+
+
 def test_table_invariance_and_recovery():
     x = chain(20, 12, cis=(4,))
     U = fs.random_rotations(1, seed=13)[0]
