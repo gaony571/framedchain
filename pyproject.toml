@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "framespace"
+version = "0.1.0"
+description = "Frame-sequence space for protein backbones: one coordinate system and one proven metric for structures of any length"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["numpy", "torch"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["framespace"]
