@@ -1,4 +1,4 @@
-"""공간의 확정된 성질 시험. 실제 단백질 자료 없이 합성 프레임 열로 잰다 (pytest)."""
+"""SQFORM_SPACE.md 의 확정된 정의와 성질 시험. 합성 프레임 열로 잰다 (pytest)."""
 import math
 
 import numpy as np
@@ -6,30 +6,20 @@ import torch
 
 import framespace as fs
 
-# 시험용 원자 틀(변의 좌표계, Å): C_i, O_i 의 자리
-LOC_C, LOC_O = np.array([1.42, 0.53, 0.01]), np.array([1.64, 1.74, 0.01])
+LOC_C, LOC_O = np.array([1.42, 0.53, 0.01]), np.array([1.65, 1.74, 0.01])   # 트랜스 틀 (1.4절 표)
 
 
-def helixish(n, seed, noise=0.15):
-    """이웃 변이 서로 비슷한 회전을 이루는 열 (n, 3, 3) = R/2."""
+def chain(n, seed, noise=0.15, cis=()):
+    """이웃 변이 서로 비슷한 회전을 이루는 실제 구조의 좌표 (n, 3, 3) = s R / 2. 트랜스 s ≈ 1 ± 0.016, cis 자리는 s = 0.81."""
     g = torch.Generator().manual_seed(seed)
     step = fs.expmap(torch.tensor([0.3, 1.2, 0.4], dtype=torch.float64))
     R = [torch.eye(3, dtype=torch.float64)]
     for _ in range(n - 1):
         R.append(R[-1] @ step @ fs.expmap(noise * torch.randn(3, generator=g, dtype=torch.float64)))
-    return torch.stack(R) / 2
-
-
-def atoms_from(X, l):
-    """시험용: 좌표와 길이로 잔기마다 N, CA, C, O (L = n + 1)."""
-    X = np.asarray(X)
-    R = 2 * X
-    CA = fs.ca_trace(X, l)
-    C = CA[:-1] + R @ LOC_C
-    O = CA[:-1] + R @ LOC_O
-    C = np.concatenate([C, C[-1:] + 1.0])
-    O = np.concatenate([O, O[-1:] + 1.0])
-    return CA - 1.0, CA, C, O
+    s = 1 + 0.016 * torch.randn(n, generator=g, dtype=torch.float64)
+    for i in cis:
+        s[i] = 0.81
+    return s[:, None, None] * torch.stack(R) / 2
 
 
 def test_quaternion_roundtrip():
@@ -44,97 +34,122 @@ def test_procrustes_and_polar():
     assert torch.allclose(R, U, atol=1e-10) and torch.allclose(s, torch.full((5,), 0.5, dtype=torch.float64))
 
 
-def test_frames_roundtrip_and_pdb(tmp_path):
-    X = helixish(30, 3).numpy()
-    l = np.full(30, 3.8)
-    N, CA, C, O = atoms_from(X, l)
-    R, l2 = fs.frames_from_backbone(N, CA, C, O)
-    assert np.allclose(l2, l) and np.allclose(fs.embed(R), X, atol=1e-10) and fs.is_real(X).all()
-    p = tmp_path / 'x.pdb'
-    with open(p, 'w') as f:
-        k = 0
-        for i in range(len(CA)):
-            for name, xyz in (('N', N[i]), ('CA', CA[i]), ('C', C[i]), ('O', O[i])):
-                k += 1
-                f.write('ATOM  %5d  %-3s ALA A%4d    %8.3f%8.3f%8.3f  1.00  0.00\n' % (k, name, i + 1, *xyz))
-    Xp, lp = fs.from_pdb(str(p))
-    assert Xp.shape == (1, 30, 3, 3) and np.allclose(Xp[0], X, atol=2e-3) and np.allclose(lp[0], l, atol=2e-3)
+def test_coordinates_roundtrip():
+    """원자 -> 좌표 -> Cα: 좌표만으로 Cα 가 정확히 복원되고 길이·시스가 읽힌다 (1.2, 1.4절)."""
+    x = chain(30, 3, cis=(7,)).numpy()
+    CA = fs.ca_trace(x)
+    R, s = fs.frames_of(x)
+    C = np.concatenate([CA[:-1] + R @ LOC_C, CA[-1:] + 1.0])
+    O = np.concatenate([CA[:-1] + R @ LOC_O, CA[-1:] + 2.0])
+    x2 = fs.coordinates_from_backbone(CA, C, O)
+    assert np.allclose(x2, x, atol=1e-10) and fs.is_real(x).all()
+    assert np.allclose(fs.edge_lengths(x), s * fs.L0) and fs.is_cis(x)[7] and fs.is_cis(x).sum() == 1
+    assert np.allclose(np.linalg.norm(CA[1:] - CA[:-1], axis=-1), s * fs.L0)
+    assert np.allclose((x ** 2).sum((-1, -2)), 0.75 * s ** 2)
 
 
 def test_self_and_symmetry():
-    A, B = helixish(25, 1), helixish(31, 2)
-    d0, _ = fs.distance(A, A)
+    x, y = chain(25, 1), chain(31, 2)
+    d0, _ = fs.distance(x, x)
     assert float(d0) < 1e-6
-    dab, _ = fs.distance(A, B, n_random=63)
-    dba, _ = fs.distance(B, A, n_random=63)
-    assert abs(float(dab) - float(dba)) < 1e-6
+    dxy, _ = fs.distance(x, y)
+    dyx, _ = fs.distance(y, x)
+    assert abs(float(dxy) - float(dyx)) < 1e-6
 
 
 def test_rotation_invariance():
-    A, B = helixish(20, 3), helixish(24, 4)
+    x, y = chain(20, 3), chain(24, 4)
     U = fs.random_rotations(1, seed=9)[0]
-    d1, _ = fs.sq_distance(A, B, n_random=63)
-    d2, _ = fs.sq_distance(torch.einsum('xy,nyz->nxz', U, A), B, n_random=63)
+    d1, _ = fs.sq_distance(x, y)
+    d2, _ = fs.sq_distance(torch.einsum('xy,nyz->nxz', U, x), y)
     assert abs(float(d1) - float(d2)) < 1e-8
 
 
-def test_zero_padding_invariance():
-    A, B = helixish(20, 3), helixish(26, 4)
-    Bp = torch.cat([B, torch.zeros(7, 3, 3, dtype=B.dtype)])
-    d1, _ = fs.sq_distance(A, B, n_random=31)
-    d2, _ = fs.sq_distance(A, Bp, n_random=31)
-    assert abs(float(d1) - float(d2)) < 1e-9
+def test_zero_insertion_invariance():
+    x, y = chain(20, 3), chain(26, 4)
+    yz = torch.cat([y[:10], torch.zeros(4, 3, 3, dtype=y.dtype), y[10:], torch.zeros(3, 3, 3, dtype=y.dtype)])
+    d1, _ = fs.sq_distance(x, y)
+    d2, _ = fs.sq_distance(x, yz)
+    assert abs(float(d1) - float(d2)) < 1e-9 and fs.n_edges(yz) == 26
 
 
 def test_truncation_law():
-    """A 와 A 의 앞 n−k 변 사이: d² = 0.75 k (정확히)."""
-    A = helixish(40, 5)
+    """구조와 그 앞부분 사이의 d² = 잘라낸 항의 노름² 합 (2.5절. 트랜스만이면 0.75 × 잘라낸 변 수)."""
+    x = chain(40, 5, cis=(36,))
     for k in (1, 5, 13):
-        d2, _ = fs.sq_distance(A, A[:-k])
-        assert abs(float(d2) - 0.75 * k) < 1e-8
+        d2, _ = fs.sq_distance(x, x[:-k])
+        assert abs(float(d2) - float(fs.sq_norm(x[-k:]))) < 1e-8
+
+
+def test_edge_shrink_law():
+    """변 하나를 f 배로 줄인 구조와의 거리 = (1 − f) × 그 항의 노름 (2.3절)."""
+    x = chain(20, 6)
+    for f in (0.0, 0.25, 0.5, 0.9):
+        y = x.clone()
+        y[8] = f * y[8]
+        d, _ = fs.distance(x, y)
+        assert abs(float(d) - (1 - f) * float(x[8].norm())) < 1e-8
 
 
 def test_triangle_inequality():
-    S = [helixish(n, s) for n, s in ((12, 1), (15, 2), (10, 3), (14, 4))]
+    S = [chain(n, s) for n, s in ((12, 1), (15, 2), (10, 3), (14, 4))]
     D = np.zeros((4, 4))
     for i in range(4):
         for j in range(i + 1, 4):
-            D[i, j] = D[j, i] = float(fs.distance(S[i], S[j], n_random=127)[0])
+            D[i, j] = D[j, i] = float(fs.distance(S[i], S[j])[0])
     for i in range(4):
         for j in range(4):
             for k in range(4):
                 assert D[i, k] <= D[i, j] + D[j, k] + 1e-6
 
 
-def test_geodesic_is_straight():
-    A, B = helixish(18, 6), helixish(22, 7)
-    d2, al = fs.sq_distance(A, B, n_random=63)
-    Ca, Cb, cols = fs.aligned_columns(A, B, alignment=al)
-    assert abs(float((Ca - Cb).pow(2).sum()) - float(d2)) < 1e-8
-    for t in (0.25, 0.5, 0.8):
-        G = fs.geodesic(Ca, Cb, t)
-        assert abs(float((G - Ca).pow(2).sum().sqrt()) - t * math.sqrt(float(d2))) < 1e-8
-        assert abs(float((G - Cb).pow(2).sum().sqrt()) - (1 - t) * math.sqrt(float(d2))) < 1e-8
+def test_straight_line_is_shortest():
+    x, y = chain(18, 6), chain(22, 7)
+    d2, al = fs.sq_distance(x, y)
+    a, b, cols = fs.aligned_columns(x, y, alignment=al)
+    assert abs(float((a - b).pow(2).sum()) - float(d2)) < 1e-8
+    d = math.sqrt(float(d2))
+    for t in (0.25, 0.5, 0.75):
+        g = fs.geodesic(a, b, t)
+        assert abs(float(fs.distance(x, g)[0]) - t * d) < 1e-6
+        assert abs(float(fs.distance(g, y)[0]) - (1 - t) * d) < 1e-6
 
 
-def test_fixed_vs_optimal():
-    A, B = helixish(15, 8), helixish(15, 9)
-    k = np.arange(15)
-    df = fs.fixed_sq_distance(A[None], B[None], k, k)[0, 0]
-    do, _ = fs.sq_distance(A, B, n_random=63)
+def test_fixed_is_upper_bound():
+    x, y = chain(15, 8), chain(15, 9)
+    df = fs.fixed_sq_distance(x[None], y[None])[0, 0]
+    do, _ = fs.sq_distance(x, y)
     assert float(do) <= float(df) + 1e-9
 
 
+def test_scales():
+    x, y = chain(15, 8), chain(19, 9)
+    d, al = fs.distance(x, y)
+    assert 0 <= fs.length_scaled(float(d), 15, 19) <= 1 and fs.sim_long(float(al.score), 15, 19) <= 1
+
+
 def test_mean_point_of_rotated_copies():
-    A = helixish(16, 10)
+    x = chain(16, 10)
     U = fs.random_rotations(8, seed=11)
-    E = torch.einsum('fxy,nyz->fnxz', U, A)
-    M = fs.mean_point(E)
-    d2, _ = fs.sq_distance(M, A)
+    E = torch.einsum('fxy,nyz->fnxz', U, x)
+    d2, _ = fs.sq_distance(fs.mean_point(E), x)
     assert float(d2) < 1e-10
 
 
-def test_certificate_small():
-    A, B = helixish(10, 10), helixish(12, 11)
-    r = fs.bnb(A, B)
+def test_table_invariance_and_recovery():
+    x = chain(20, 12, cis=(4,))
+    U = fs.random_rotations(1, seed=13)[0]
+    G = fs.relative_table(x)
+    assert torch.allclose(G, fs.relative_table(torch.einsum('xy,nyz->nxz', U, x)), atol=1e-12)
+    assert torch.allclose(fs.determinants(x), (2 * x[:, :, 0].norm(dim=-1)) ** 3 / 8, atol=1e-12)
+    xr = fs.from_table(G)
+    assert torch.allclose(fs.relative_table(xr), G, atol=1e-12) and float(fs.sq_distance(xr, x)[0]) < 1e-10
+    xz = torch.cat([x[:5], torch.zeros(2, 3, 3, dtype=x.dtype), x[5:]])
+    Gz = fs.relative_table(xz)
+    assert float(Gz[5:7].abs().max()) == 0 and float(Gz[:, 5:7].abs().max()) == 0
+
+
+def test_certificate():
+    x, y = chain(10, 10, cis=(3,)), chain(12, 11)
+    r = fs.bnb(x, y)
     assert r['certified'] and r['S_heur'] <= r['S_ub'] + 1e-9 and r['S_lb'] <= r['S_ub']
