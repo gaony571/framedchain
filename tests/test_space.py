@@ -202,3 +202,42 @@ def test_certificate():
     x, y = chain(10, 10, cis=(3,)), chain(12, 11)
     r = fs.bnb(x, y)
     assert r['certified'] and r['S_heur'] <= r['S_ub'] + 1e-9 and r['S_lb'] <= r['S_ub']
+
+
+def _ensemble(base, F, seed, sigma=0.08):
+    """base 의 변마다 작은 회전 요동과 표본마다의 전체 회전을 준 앙상블 (F, n, 3, 3)."""
+    g = torch.Generator().manual_seed(seed)
+    W = fs.expmap(sigma * torch.randn(F, len(base), 3, generator=g, dtype=torch.float64))
+    E = torch.einsum('nxy,fnyz->fnxz', base, W)
+    return torch.einsum('fxy,fnyz->fnxz', fs.random_rotations(F, seed=seed + 7), E)
+
+
+def test_optimal_plan():
+    """할당 문제와 선형계획이 같은 값을 내고, 무게를 주면 계획의 주변 분포가 무게다."""
+    rng = np.random.default_rng(2)
+    C = rng.random((7, 7))
+    P1 = fs.optimal_plan(C)
+    P2 = fs.optimal_plan(C, np.ones(7), np.ones(7))
+    assert abs((P1 * C).sum() - (P2 * C).sum()) < 1e-9
+    a, b = rng.random(5), rng.random(8)
+    P = fs.optimal_plan(rng.random((5, 8)), a, b)
+    assert np.allclose(P.sum(1), a / a.sum(), atol=1e-9) and np.allclose(P.sum(0), b / b.sum(), atol=1e-9)
+
+
+def test_ensemble_w2():
+    """앙상블 W₂: 자기 0, 대칭, 표본을 돌려도·영행렬을 끼워도 같고, 삼각부등식."""
+    A = _ensemble(chain(14, 1), 6, 1)
+    B = _ensemble(chain(14, 2), 6, 2)
+    C = _ensemble(chain(16, 3), 6, 3)
+    kw = dict(n_random=31)
+    ab = fs.ensemble_w2(A, B, **kw)['W2']
+    assert fs.ensemble_w2(A, A, **kw)['W2'] < 1e-6
+    assert abs(ab - fs.ensemble_w2(B, A, **kw)['W2']) < 1e-6 * ab
+    Ar = torch.einsum('fxy,fnyz->fnxz', fs.random_rotations(6, seed=9), A)
+    assert abs(fs.ensemble_w2(Ar, B, **kw)['W2'] - ab) < 1e-6 * ab
+    Az = torch.cat([A[:, :5], torch.zeros(6, 2, 3, 3, dtype=A.dtype), A[:, 5:]], 1)
+    assert abs(fs.ensemble_w2(Az, B, **kw)['W2'] - ab) < 1e-6 * ab
+    ac, bc = fs.ensemble_w2(A, C, **kw)['W2'], fs.ensemble_w2(B, C, **kw)['W2']
+    assert ac <= ab + bc + 1e-9 and ab <= ac + bc + 1e-9 and bc <= ab + ac + 1e-9
+    w = fs.ensemble_w2(A, B, wa=np.arange(1, 7), cost=fs.ensemble_w2(A, B, **kw)['cost'])
+    assert np.allclose(w['plan'].sum(1), np.arange(1, 7) / 21, atol=1e-9)

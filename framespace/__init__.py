@@ -2,6 +2,7 @@
 
 점은 3×3 행렬의 유한한 열이고, 실제 구조의 항은 x_i = s_i R_i / 2 (R_i 는 변 i 의 프레임, s_i = l_i / 3.83 Å).
 영행렬을 끼우거나 빼도, 모든 항에 같은 회전을 왼쪽에 곱해도 같은 점이다. 거리는 순서를 지키는 부분 대응과 회전에 대한 최솟값이다.
+앙상블은 이 거리 위의 분포이고, 그 사이의 W₂ 는 정의대로 계산한다(transport).
 """
 from .geometry import hat, expmap, procrustes, polar, quat_to_mat, mat_to_quat, quat_mul, quat_conj, rotvec_to_quat, random_rotations
 from .frames import L0, CIS_MAX, CAPS, frames_from_backbone, to_coordinates, coordinates_from_backbone, edge_lengths, frames_of, is_real, is_cis, n_edges, ca_trace, read_pdb_backbone, coordinates_from_pdb
@@ -9,5 +10,6 @@ from .distance import dp_score, Alignment, align, sq_distance, distance, fixed_s
 from .certify import bnb
 from .operations import aligned_columns, geodesic, align_to_reference, mean_point
 from .table import relative_table, determinants, from_table
+from .transport import optimal_plan, structure_costs, ensemble_w2
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
