@@ -1,14 +1,15 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below (and the accompanying paper once published)."
-title: "framespace: a frame-sequence space for protein backbones of any length"
-version: 0.3.3
+message: "If you use this software, please cite it as below and the accompanying paper, \"Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length\" (in preparation)."
+title: "framedchain: framed chains for protein structures and ensembles of any length"
+version: 0.4.0
 license: MIT
 type: software
 authors:
   - family-names: "An"
     given-names: "Hyeonsu"
-repository-code: "https://github.com/gaony571/framespace"
+repository-code: "https://github.com/gaony571/framedchain"
 keywords:
+  - framed chains
   - protein structure
   - metric
   - structural alignment

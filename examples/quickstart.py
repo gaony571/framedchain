@@ -4,12 +4,12 @@
 
 It builds two small synthetic backbones (Cα, C, O atoms), turns them into coordinates of the space, and shows the
 distance, its certificate, the matched/gap split, the normalised distance, and the energy statistic between two
-small ensembles. Replace `synthetic_backbone` with `fs.coordinates_from_pdb('your.pdb')` for real structures.
+small ensembles. Replace `synthetic_backbone` with `fc.coordinates_from_pdb('your.pdb')` for real structures.
 """
 import numpy as np
 import torch
 
-import framespace as fs
+import framedchain as fc
 
 
 def synthetic_backbone(n_res, seed):
@@ -28,24 +28,24 @@ def synthetic_backbone(n_res, seed):
 
 
 def main():
-    x = fs.coordinates_from_backbone(*synthetic_backbone(40, 1))     # (39, 3, 3): one 3 × 3 term per Cα–Cα edge
-    y = fs.coordinates_from_backbone(*synthetic_backbone(46, 2))     # a different length is fine
+    x = fc.coordinates_from_backbone(*synthetic_backbone(40, 1))     # (39, 3, 3): one 3 × 3 term per Cα–Cα edge
+    y = fc.coordinates_from_backbone(*synthetic_backbone(46, 2))     # a different length is fine
     print(f'x: {x.shape[0]} edges, y: {y.shape[0]} edges')
 
-    d, al = fs.distance(x, y)                                        # 128 starts; an upper bound on d
+    d, al = fc.distance(x, y)                                        # 128 starts; an upper bound on d
     print(f'distance d(x, y)      = {float(d):.4f}   ({int(al.match.sum())} matched edges)')
-    cert = fs.bnb(x, y)                                              # branch and bound: certified within rel_tol
+    cert = fc.bnb(x, y)                                              # branch and bound: certified within rel_tol
     print(f'certified             = {cert["certified"]}  (S in [{cert["S_lb"]:.4f}, {cert["S_ub"]:.4f}])')
-    sp = fs.split_sq_distance(x, y, alignment=al)
+    sp = fc.split_sq_distance(x, y, alignment=al)
     print(f'matched + gap parts   = {float(sp["matched"]):.4f} + {float(sp["gap"]):.4f} = d^2 = {float(d) ** 2:.4f}')
-    print(f'normalised D_hat      = {float(fs.normalized_distance(x, y, d=d)):.4f}  (in [0, 1])')
+    print(f'normalised D_hat      = {float(fc.normalized_distance(x, y, d=d)):.4f}  (in [0, 1])')
 
     # ensembles: 3 runs × 20 frames each, frames concatenated run by run
     def runs(base, sigma, seed):
         g = torch.Generator().manual_seed(seed)
-        W = fs.expmap(sigma * torch.randn(60, len(base), 3, generator=g, dtype=torch.float64)).numpy()
+        W = fc.expmap(sigma * torch.randn(60, len(base), 3, generator=g, dtype=torch.float64)).numpy()
         return np.einsum('nxy,fnyz->fnxz', base, W)
-    st = fs.ensemble_statistic(runs(x, 0.08, 3), runs(x, 0.16, 4), n_per_run=20, k=200)
+    st = fc.ensemble_statistic(runs(x, 0.08, 3), runs(x, 0.16, 4), n_per_run=20, k=200)
     print(f'ensemble D2/sqrt(n)   = {st["D2_sqrt_n"]:.4f}  (D2 = {st["D2"]:.4f}, ratio = {st["ratio"]:.3f})')
 
 

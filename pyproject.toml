@@ -3,16 +3,16 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "framespace"
-version = "0.3.3"
-description = "Frame-sequence space for protein backbones: one coordinate system and one proven metric for structures of any length"
+name = "framedchain"
+version = "0.4.0"
+description = "Framed chains: a metric space for protein structures and ensembles of any length"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "Hyeonsu An"}]
 requires-python = ">=3.9"
 dependencies = ["numpy", "torch", "scipy"]
-keywords = ["protein structure", "structural alignment", "metric", "molecular dynamics", "ensembles", "energy distance"]
+keywords = ["framed chains", "protein structure", "structural alignment", "metric", "molecular dynamics", "ensembles", "energy distance"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Intended Audience :: Science/Research",
@@ -26,9 +26,9 @@ ot = ["pot"]
 rulers = ["numba"]
 
 [project.urls]
-Repository = "https://github.com/gaony571/framespace"
-Issues = "https://github.com/gaony571/framespace/issues"
-Changelog = "https://github.com/gaony571/framespace/blob/main/CHANGELOG.md"
+Repository = "https://github.com/gaony571/framedchain"
+Issues = "https://github.com/gaony571/framedchain/issues"
+Changelog = "https://github.com/gaony571/framedchain/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["framespace"]
+packages = ["framedchain"]

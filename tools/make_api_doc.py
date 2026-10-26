@@ -10,7 +10,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
-import framespace  # noqa: E402
+import framedchain  # noqa: E402
 
 MODULES = ['frames', 'distance', 'certify', 'operations', 'table', 'transport', 'parts', 'reduced', 'ensemble',
            'geometry', 'rulers']
@@ -19,10 +19,10 @@ LOW_LEVEL = {'dp_score', 'dp_score_band', 'align_band', 'band_windows', 'center_
 
 
 def main():
-    out = [f'# framespace {framespace.__version__} — API reference', '',
+    out = [f'# framedchain {framedchain.__version__} — API reference', '',
            'Generated from the docstrings by `tools/make_api_doc.py`. Every name listed here except the `rulers` module is',
-           'importable from the top level (`import framespace as fs; fs.distance(...)`); `rulers` needs numba and is',
-           'imported explicitly (`from framespace import rulers`).', '',
+           'importable from the top level (`import framedchain as fc; fc.distance(...)`); `rulers` needs numba and is',
+           'imported explicitly (`from framedchain import rulers`).', '',
            'Conventions: a structure with L residues is an array (L − 1, 3, 3) of edge coordinates (one 3 × 3 term per',
            'Cα–Cα edge); batches add a leading axis and are zero-padded to a common length (`pad_stack`); ensembles are',
            '(frames, n, 3, 3). Distances are in units of the coordinate norm (a trans edge has squared norm 0.75); Cα',
@@ -30,7 +30,7 @@ def main():
            'marked *(tensor)* are low-level building blocks that expect torch tensors. float64 is recommended.', '']
     for name in MODULES:
         try:
-            mod = importlib.import_module(f'framespace.{name}')
+            mod = importlib.import_module(f'framedchain.{name}')
         except ImportError as e:
             out += [f'## `{name}`', '', f'(not documented here: {e})', '']
             continue

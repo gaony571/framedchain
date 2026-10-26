@@ -8,7 +8,7 @@ is a metric on the quotient (identifying insertion/removal of zero-cost terms an
 D_{w,ℓ}. Feature of edge i: (w·x_i, p_i/ℓ) (x_i = s_i R_i/2, p_i the midpoint of the edge); δ is their Euclidean
 distance and c = w‖x‖.
     D² = w²(‖X‖² + ‖Y‖²) − S,  S = max Σ_{(i,j)∈π} [2w²⟨x_i, U y_j⟩ − ‖p_i − U q_j − t‖²/ℓ²].
-  As ℓ → ∞ this is the basic distance (framespace.sq_distance) times w². The value at (w, ℓ) is w²·D²(1, wℓ), so the
+  As ℓ → ∞ this is the basic distance (framedchain.sq_distance) times w². The value at (w, ℓ) is w²·D²(1, wℓ), so the
   only effective parameter is wℓ.
 D_TM. Feature of residue i: P_i (the Cα position); δ(a, b) = f(‖a − b‖/d₀), f(r) = r/√(1 + r²) (concave, increasing,
 f(0) = 0, hence a metric); c² = 1/2.
@@ -26,7 +26,7 @@ The two are alternated from many poses and the best is kept. Starts: fragment-pa
 superposition of TM-align), gapless threading, (search) superpositions of sub-fragments of the found correspondence
 (the search of the TM-score program), and poses given from outside (e.g. the TM-align pose).
 The computed value is an upper bound on D; there is no certificate (branch and bound). The inner loops run in numba
-(pip install framespace[rulers]). This module is the same computation as framespace_wip/stage0/rulers.py used for the
+(pip install framedchain[rulers]). This module is the same computation as framespace_wip/stage0/rulers.py used for the
 paper (the re-implementation of TM-align in the conventional column, the timing table).
 """
 import math

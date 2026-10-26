@@ -19,7 +19,7 @@ sample k to its own mean computed in advance, the start rotation of the pair (k,
 Every ensemble computation of the paper follows this rule: 128 starts between the mean points, one start per sample
 pair, band half-width 5 at first and doubled (up to the number of columns) only for pairs touching the band edge,
 float64. The functions here are the same computation as the code that ran (framespace_wip/stage0/band.py and
-red_pairs in code/r38_s0.py of the framespace-paper repository).
+red_pairs in code/r38_s0.py of the framedchain-paper repository).
 """
 import numpy as np
 import torch

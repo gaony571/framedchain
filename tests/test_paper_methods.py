@@ -5,18 +5,18 @@ import numpy as np
 import pytest
 import torch
 
-import framespace as fs
-from framespace import ensemble as en
-from framespace import reduced as rd
+import framedchain as fc
+from framedchain import ensemble as en
+from framedchain import reduced as rd
 
 
 def chain(n, seed, noise=0.15):
     """A real structure (n, 3, 3) = s R / 2 whose neighbouring edges have similar rotations."""
     g = torch.Generator().manual_seed(seed)
-    step = fs.expmap(torch.tensor([0.3, 1.2, 0.4], dtype=torch.float64))
+    step = fc.expmap(torch.tensor([0.3, 1.2, 0.4], dtype=torch.float64))
     R = [torch.eye(3, dtype=torch.float64)]
     for _ in range(n - 1):
-        R.append(R[-1] @ step @ fs.expmap(noise * torch.randn(3, generator=g, dtype=torch.float64)))
+        R.append(R[-1] @ step @ fc.expmap(noise * torch.randn(3, generator=g, dtype=torch.float64)))
     s = 1 + 0.016 * torch.randn(n, generator=g, dtype=torch.float64)
     return s[:, None, None] * torch.stack(R) / 2
 
@@ -24,17 +24,17 @@ def chain(n, seed, noise=0.15):
 def ensemble(base, F, seed, sigma=0.08, rotate=True):
     """F samples with a small rotational fluctuation on every edge of base (n, 3, 3). With rotate, a global rotation per sample is applied too (the same point)."""
     g = torch.Generator().manual_seed(seed)
-    W = fs.expmap(sigma * torch.randn(F, len(base), 3, generator=g, dtype=torch.float64))
+    W = fc.expmap(sigma * torch.randn(F, len(base), 3, generator=g, dtype=torch.float64))
     E = torch.einsum('nxy,fnyz->fnxz', base, W)
     if rotate:
-        E = torch.einsum('fxy,fnyz->fnxz', fs.random_rotations(F, seed=seed + 7), E)
+        E = torch.einsum('fxy,fnyz->fnxz', fc.random_rotations(F, seed=seed + 7), E)
     return E
 
 
 def insert_edge(base, p, seed=0):
     """The structure with one edge inserted before edge p (n+1, 3, 3)."""
     g = torch.Generator().manual_seed(seed)
-    new = base[p] @ fs.expmap(0.5 * torch.randn(3, generator=g, dtype=torch.float64))
+    new = base[p] @ fc.expmap(0.5 * torch.randn(3, generator=g, dtype=torch.float64))
     return torch.cat([base[:p], new[None], base[p:]], 0)
 
 
@@ -50,13 +50,13 @@ def test_band_equals_masked_full_dp():
         col = lo[:, None] + np.arange(w)[None]
         mask = torch.full((n, m), -1e9, dtype=torch.float64)
         mask[np.arange(n)[:, None], col] = 0
-        assert torch.allclose(rd.dp_score_band(K[:, np.arange(n)[:, None], col], lo), fs.dp_score(K + mask), atol=1e-9), trial
+        assert torch.allclose(rd.dp_score_band(K[:, np.arange(n)[:, None], col], lo), fc.dp_score(K + mask), atol=1e-9), trial
 
 
 def test_align_band_full_width_matches_align():
     a, b = chain(20, 1), chain(23, 2)
-    st = fs.random_rotations(8, seed=3)[None]
-    full = fs.align(a[None], b[None], starts=st)
+    st = fc.random_rotations(8, seed=3)[None]
+    full = fc.align(a[None], b[None], starts=st)
     lo, w = rd.band_windows(np.zeros(20, int), 23, 30)
     S, U, M, edge = rd.align_band(a[None], b[None], lo, w, st)
     assert abs(float(S[0] - full.score[0])) < 1e-9 and bool((M[0] == full.match[0]).all()) and not bool(edge[0])
@@ -69,7 +69,7 @@ def two_ensembles():
 
 
 def full_pairs(EA, EB, ia, ib):
-    d2, _ = fs.sq_distance(EA[ia], EB[ib])
+    d2, _ = fc.sq_distance(EA[ia], EB[ib])
     return d2.sqrt().numpy()
 
 
@@ -135,7 +135,7 @@ def test_ensemble_statistic_null_and_shift():
     N = 6
     E1 = torch.cat([ensemble(base, N, 100 + r, sigma=0.12) for r in range(3)])
     E2 = torch.cat([ensemble(base, N, 200 + r, sigma=0.12) for r in range(3)])
-    shifted = base @ fs.expmap(torch.tensor([0.0, 0.0, 0.25], dtype=torch.float64))
+    shifted = base @ fc.expmap(torch.tensor([0.0, 0.0, 0.25], dtype=torch.float64))
     E3 = torch.cat([ensemble(shifted, N, 300 + r, sigma=0.12) for r in range(3)])
     null = en.ensemble_statistic(E1, E2, N, k=30, seed=0)
     alt = en.ensemble_statistic(E1, E3, N, k=30, seed=0)
@@ -162,7 +162,7 @@ def test_edge_spread_profile_and_similarity():
     base = chain(20, 31)
     E = ensemble(base, 40, 4, sigma=0.1).numpy()
     v = en.edge_spread_profile(E, np.arange(20))
-    Er = np.einsum('fxy,fnyz->fnxz', fs.random_rotations(40, seed=9).numpy(), E)   # a global rotation per sample → removed by GPA
+    Er = np.einsum('fxy,fnyz->fnxz', fc.random_rotations(40, seed=9).numpy(), E)   # a global rotation per sample → removed by GPA
     assert np.allclose(en.edge_spread_profile(Er, np.arange(20)), v, rtol=1e-6, atol=1e-10)
     assert np.allclose(en.edge_spread_profile(np.repeat(E[:1], 5, 0), np.arange(20)), 0, atol=1e-20)
     pairs = np.stack([np.arange(20), np.arange(20)], 1)
@@ -173,7 +173,7 @@ def test_project_to_real():
     x = chain(12, 41).numpy()
     P, degen = en.project_to_real(x)
     assert np.allclose(P, x, atol=1e-12) and not degen.any()
-    m = fs.mean_point(ensemble(chain(12, 41), 30, 5, sigma=0.3)).numpy()
+    m = fc.mean_point(ensemble(chain(12, 41), 30, 5, sigma=0.3)).numpy()
     P2, _ = en.project_to_real(m)
     assert (((P2 - m) ** 2).sum((1, 2)) <= ((x - m) ** 2).sum((1, 2)) + 1e-12).all()   # the nearest s·R/2 for every term
     s = 2 * np.linalg.norm(x[:, :, 0], axis=-1)
@@ -186,17 +186,17 @@ def test_project_to_real():
 def test_split_sq_distance():
     a = chain(20, 51)
     b = insert_edge(a, 9, 2)
-    sp = fs.split_sq_distance(a, b)
-    d2, _ = fs.sq_distance(a, b)
+    sp = fc.split_sq_distance(a, b)
+    d2, _ = fc.sq_distance(a, b)
     assert abs(float(sp['d2'] - d2)) < 1e-9                                       # matched part + gap part = d² at the same alignment
     assert abs(float(sp['gap']) - float((b[9] ** 2).sum())) < 1e-9 and float(sp['matched']) < 1e-9   # only the inserted edge is a gap
-    batch = fs.split_sq_distance(torch.stack([a, a]), torch.stack([b[:20], a]))
+    batch = fc.split_sq_distance(torch.stack([a, a]), torch.stack([b[:20], a]))
     assert batch['d2'].shape == (2,) and float(batch['d2'][1]) < 1e-9
 
 
 def test_normalized_distance():
     xs = [chain(n, 60 + n) for n in (10, 14, 18)]
-    D = np.array([[float(fs.normalized_distance(p, q)) for q in xs] for p in xs])
+    D = np.array([[float(fc.normalized_distance(p, q)) for q in xs] for p in xs])
     assert np.allclose(np.diag(D), 0, atol=1e-6) and (D >= 0).all() and (D <= 1 + 1e-12).all()
     assert D[0, 2] <= D[0, 1] + D[1, 2] + 1e-9
 
@@ -206,12 +206,12 @@ def test_normalized_distance():
 def test_near_optimal_alignments():
     a = chain(20, 71)
     b = insert_edge(a, 9, 3)
-    r = fs.near_optimal_alignments(a, b, eps=0.005)
-    d2, al = fs.sq_distance(a, b)
+    r = fc.near_optimal_alignments(a, b, eps=0.005)
+    d2, al = fc.sq_distance(a, b)
     assert abs(r['S_max'] - float(al.score)) < 1e-9                       # with the same start rule, the same maximum as align
     assert r['n_near'] >= 1 and r['n_distinct'] >= 1
     assert (r['intersection'] <= r['best_match']).all()                  # the intersection lies inside the optimal correspondence
-    r0 = fs.near_optimal_alignments(a, b, eps=0.0)
+    r0 = fc.near_optimal_alignments(a, b, eps=0.0)
     assert (r0['intersection'] == r0['best_match']).all() or r0['n_distinct'] > 1
 
 

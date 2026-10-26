@@ -1,16 +1,16 @@
 """Tests of the ruler family (rulers): agreement of computation and definition, the core of the triangle inequality
 (composition of correspondences and poses), and the basic distance as ℓ → ∞.
-Moved from framespace_wip/tests_stage0/test_rulers.py of the framespace-paper repository. Skipped without numba."""
+Moved from framedchain_wip/tests_stage0/test_rulers.py of the framedchain-paper repository. Skipped without numba."""
 import math
 
 import numpy as np
 import pytest
 import torch
 
-import framespace as fs
-from framespace.geometry import random_rotations
+import framedchain as fc
+from framedchain.geometry import random_rotations
 
-rulers = pytest.importorskip('framespace.rulers', reason='numba is required (pip install framespace[rulers])')
+rulers = pytest.importorskip('framedchain.rulers', reason='numba is required (pip install framedchain[rulers])')
 def backbone(n, seed):
     """A smooth Cα chain with 3.8 Å steps and its coordinates (n−1, 3, 3) (O placed on a plausible side)."""
     rng = np.random.default_rng(seed)
@@ -23,7 +23,7 @@ def backbone(n, seed):
     CA = np.array(CA)
     C = CA + 0.5 * np.roll(CA, -1, 0) - 0.5 * CA + 0.3 * rng.normal(size=CA.shape)
     O = C + 1.2 * np.cross(np.roll(CA, -1, 0) - CA + 1e-3, [0.0, 0.0, 1.0]) / 3.8
-    return CA, fs.coordinates_from_backbone(CA, C, O)
+    return CA, fc.coordinates_from_backbone(CA, C, O)
 
 
 def moved(P, seed):
@@ -94,7 +94,7 @@ def test_wl_identity_self_and_limit():
     Rm = random_rotations(1, seed=9)[0].numpy()
     z = rulers.wl_align(x, np.einsum('ab,nbc->nac', Rm, x), ell=4.0, p=rulers.edge_positions(x), q=rulers.edge_positions(x) @ Rm.T - 2.0)
     assert z['D2'] < 1e-8
-    base, _ = fs.sq_distance(torch.as_tensor(x), torch.as_tensor(y))
+    base, _ = fc.sq_distance(torch.as_tensor(x), torch.as_tensor(y))
     inf = rulers.wl_align(x, y, ell=math.inf)
     assert abs(inf['D2'] - float(base)) < 1e-8
     big = rulers.wl_align(x, y, ell=1e5)
@@ -156,9 +156,9 @@ def test_zero_padding_invariance():
             a.insert(int(rng.integers(0, len(a) + 1)), np.zeros((3, 3)))
         return np.array(a)
 
-    base, _ = fs.sq_distance(torch.as_tensor(x), torch.as_tensor(y))
+    base, _ = fc.sq_distance(torch.as_tensor(x), torch.as_tensor(y))
     xz, yz = ins(x, 20), ins(y, 35)
-    padded, _ = fs.sq_distance(torch.as_tensor(xz), torch.as_tensor(yz))
+    padded, _ = fc.sq_distance(torch.as_tensor(xz), torch.as_tensor(yz))
     assert abs(float(base) - float(padded)) < 1e-8
     p, q = rulers.edge_positions(x), rulers.edge_positions(y)
     keep_x, keep_y = (xz ** 2).sum((1, 2)) > 0, (yz ** 2).sum((1, 2)) > 0

@@ -1,5 +1,15 @@
 # Changelog (dates UTC)
 
+framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use the old name.
+
+## 0.4.0 (2026-10-26)
+
+- Renamed from framespace to framedchain: distribution name, import name (`import framedchain as fc`) and repository
+  (github.com/gaony571/framedchain; GitHub redirects the old address). `import framespace` no longer works. No
+  computation changed (the 46 tests and the quick-start output are identical).
+- Descriptions follow the paper (in preparation):
+  *Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length*.
+
 ## 0.3.3 (2026-10-26)
 
 - `align` accepts numpy arrays and mixed inputs (y and starts follow the dtype and device of x), like the other
@@ -12,7 +22,7 @@
 - Repository history: on 2026-10-26 the author name in the history was unified and trailer lines were removed
   from the commit messages. This changed every commit identifier but no file or date (each commit keeps its file
   tree hash). Tag `v0.2.0` is now commit `866995c` (formerly `efcdd42`; file tree `6db30c0` in both). The full map is in `docs/PROVENANCE.md` of the
-  framespace-paper repository.
+  framedchain-paper repository.
 
 ## 0.3.2 (2026-10-26)
 

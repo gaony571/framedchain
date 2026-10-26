@@ -61,7 +61,7 @@ def near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, imp
     Returns dict: S_max, best_match (n, m) bool, scores (number of starts,), near (indices of nearly optimal starts),
     n_near, n_distinct (number of different correspondences found by the nearly optimal starts), intersection (n, m)
     bool (matches present in every nearly optimal correspondence).
-    The same computation as align_all in code/r38_s0.py and the π̄ step in code/r38_p3.py of the framespace-paper
+    The same computation as align_all in code/r38_s0.py and the π̄ step in code/r38_p3.py of the framedchain-paper
     repository (only the seed of the random start rotations is passed as seed)."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)

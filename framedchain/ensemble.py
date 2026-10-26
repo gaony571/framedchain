@@ -15,7 +15,7 @@ over D it is the generalisation.
 
 Estimation is an incomplete U-statistic: for each run pair the reduced-computation distances (reduced) of k frame
 pairs (default 2,000, without replacement) are averaged. All same-sequence cells of the paper computed by D use this
-(runpair_means and estats in code/r38_s0.py, code/r38_e7_30.py of the framespace-paper repository). Pairs of
+(runpair_means and estats in code/r38_s0.py, code/r38_e7_30.py of the framedchain-paper repository). Pairs of
 different length use the same formula (the ground distance D is the same everywhere).
 """
 import itertools
@@ -179,7 +179,7 @@ def aligned_energy_stats(P, Q, n_edges):
     align_to_reference and flattened). All run pairs, all frame pairs within each run pair.
     Returns the energy_stats dict + a_P, a_Q (within-run mean distances), dmu (mean shift between run means per edge:
     cross − mean floor), logspread (log of the total-spread ratio of Q to P). The same computation as compare in
-    code/r38_compare.py of the framespace-paper repository (aligned-coordinate versions of round37 and P2)."""
+    code/r38_compare.py of the framedchain-paper repository (aligned-coordinate versions of round37 and P2)."""
     P = [np.asarray(a, np.float64) for a in P]
     Q = [np.asarray(b, np.float64) for b in Q]
 

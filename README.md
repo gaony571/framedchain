@@ -1,12 +1,21 @@
-# framespace
+# framedchain
 
-A frame-sequence space for protein backbones: one coordinate system and one proven metric for structures and ensembles of any length. (Korean version: `README.ko.md`.)
+Framed chains: a metric space for protein structures and ensembles of any length. (Korean version: `README.ko.md`.)
+
+Each virtual bond between consecutive α-carbons is represented by its peptide-plane frame scaled by bond length, and an
+absent bond is the zero matrix, so backbones of any length lie in one space. An order-preserving edit distance modulo
+global rotation is a proven metric on these chains; it splits exactly into matched and unmatched shares, and alignments
+can be certified globally optimal by branch-and-bound. For ensembles, an energy-distance statistic is unbiased for any
+underlying metric.
+
+The package accompanies the paper *Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length* (in preparation). It was called framespace up to version 0.3.3 (same
+computations; see `CHANGELOG.md`).
 
 This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (in preparation; reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-registered decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycentres) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
 
 ## What is in the space
 
-- **Coordinates.** For each edge i (Cα_i → Cα_{i+1}) a frame R_i = [T, U, V]: T is the edge direction, U the C=O direction with its T component removed, V = T × U. The term is x_i = s_i R_i / 2 with length ratio s_i = l_i / l0, l0 = 3.83 Å. The first column times 2·l0 is the edge vector, so Cα positions are recovered from the coordinates alone. Edges shorter than 3.45 Å are *cis*.
+- **Coordinates.** For each edge i (the virtual bond Cα_i → Cα_{i+1}) a frame R_i = [T, U, V]: T is the edge direction, U the C=O direction with its T component removed, V = T × U. The term is x_i = s_i R_i / 2 with length ratio s_i = l_i / l0, l0 = 3.83 Å. The first column times 2·l0 is the edge vector, so Cα positions are recovered from the coordinates alone. Edges shorter than 3.45 Å are *cis*.
 - **Same point.** Inserting or deleting zero matrices, or left-multiplying all terms by one rotation, gives the same point.
 - **Distance (proved).** d² = min over (order-preserving partial correspondence, rotation) of [Σ matched ‖x_i − U y_j‖² + Σ unmatched ‖·‖²] = ‖x‖² + ‖y‖² − 2S.
 - **Computation.** With the rotation fixed the correspondence is an exact dynamic programme; with the correspondence fixed the rotation is an exact 3×3 SVD. We alternate from 128 starting rotations (identity + 127 random). Computed values are upper bounds.
@@ -20,7 +29,7 @@ This package contains (i) the definitions and proven properties of the space, an
 - **PDB reader.** Residues with N, Cα, C and O; multiple MODELs as a batch; terminal caps (ACE, NME, NHE) removed; first altLoc; chain breaks are not checked (they appear as long edges).
 
 Fixed in the paper (0.3.x):
-- **Matched and gap parts** (`parts`). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and a gap part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalised distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
+- **Matched and gap parts** (`parts`). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalised distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
 - **Near-optimal correspondences** (`parts.near_optimal_alignments`). Correspondences of all starts with S ≥ (1 − ε) S_max (ε = 0.005), the number of distinct ones, and their intersection (the joint gate of the paper's P3 and confirmation C analyses).
 - **Reduced computation** (`reduced`). The two ensemble mean points are aligned with 128 starts (rotation U0, correspondence π̄); each sample pair then starts from one rotation R_kᵀ U0 R′_l and the correspondence is restricted to a band around π̄ (half-width 5, doubled only for pairs touching the band edge). The banded DP equals the full DP with out-of-band pairs blocked; values are upper bounds. The edge rule is a check, not a guarantee (accuracy was measured against branch-and-bound).
 - **Energy statistics** (`ensemble`). From mean distances between independent runs — C (cross) and B_P, B_Q (between different runs of the same side): Δ² = 2C − B_P − B_Q, w̄ = (B_P + B_Q)/2, ratio = √((C/w̄)² − 1), main statistic Δ²/√n̄, exponent-2 version Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2)/n_edges. By the bilinear identity Δ² is unbiased whatever the negative type of the ground distance. Estimation is an incomplete U-statistic with 2,000 frame pairs per run pair. Also: the negative-type diagnostic η₊ (positive spectral mass of J D J), the component ratio, the regime boundary, and the aligned-coordinate (Euclidean, fixed correspondence) version `aligned_energy_stats`.
@@ -49,11 +58,11 @@ If you change `l0`, pass the same value when building coordinates and when readi
 
 ## Install
 
-framespace is not on PyPI. Install it from the GitHub repository (a tagged version keeps results reproducible):
+framedchain is not on PyPI. Install it from the GitHub repository (a tagged version keeps results reproducible):
 
 ```
-pip install "framespace @ git+https://github.com/gaony571/framespace@v0.3.3"
-pip install "framespace[ot,rulers,test] @ git+https://github.com/gaony571/framespace@v0.3.3"   # with the extras
+pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.0"
+pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.0"   # with the extras
 ```
 
 or from a clone: `pip install -e .` (extras: `.[ot]` weighted transport with POT, otherwise scipy LP; `.[rulers]`
@@ -76,22 +85,22 @@ distance and the energy statistic between two small ensembles (under a minute on
 ## Use
 
 ```python
-import framespace as fs
+import framedchain as fc
 
-x = fs.coordinates_from_pdb('a.pdb')            # PDB with F models -> numpy (F, L−1, 3, 3)
-y = fs.coordinates_from_backbone(CA, C, O)      # per-residue Cα, C, O (F, L, 3) -> (F, L−1, 3, 3)
-d, al = fs.distance(x[0], y[0])                 # distance and alignment (score S, rotation U, matches)
-cert = fs.bnb(x[0], y[0])                       # certified global optimum
-sp = fs.split_sq_distance(x[0], y[0])           # sp['matched'] + sp['gap'] == d²
-M = fs.mean_point(x)                            # mean point of one protein's ensemble
-w = fs.ensemble_w2(x, y)                        # W₂ between ensembles
+x = fc.coordinates_from_pdb('a.pdb')            # PDB with F models -> numpy (F, L−1, 3, 3)
+y = fc.coordinates_from_backbone(CA, C, O)      # per-residue Cα, C, O (F, L, 3) -> (F, L−1, 3, 3)
+d, al = fc.distance(x[0], y[0])                 # distance and alignment (score S, rotation U, matches)
+cert = fc.bnb(x[0], y[0])                       # certified global optimum
+sp = fc.split_sq_distance(x[0], y[0])           # sp['matched'] + sp['gap'] == d²
+M = fc.mean_point(x)                            # mean point of one protein's ensemble
+w = fc.ensemble_w2(x, y)                        # W₂ between ensembles
 
 # one ensemble cell as in the paper: runs of 100 frames concatenated in EA and EB
-st = fs.ensemble_statistic(EA, EB, n_per_run=100)   # st['D2'], st['D2_sqrt_n'], st['ratio'], st['wbar'], st['dmu2']
-near = fs.near_optimal_alignments(mA, mB)           # near['intersection'] for the joint gate
-r_dyn = fs.dynamics_similarity(FA, FB, shared_pairs)
+st = fc.ensemble_statistic(EA, EB, n_per_run=100)   # st['D2'], st['D2_sqrt_n'], st['ratio'], st['wbar'], st['dmu2']
+near = fc.near_optimal_alignments(mA, mB)           # near['intersection'] for the joint gate
+r_dyn = fc.dynamics_similarity(FA, FB, shared_pairs)
 
-from framespace import rulers                       # needs numba
+from framedchain import rulers                       # needs numba
 tm = rulers.tm_align(CA_a, CA_b, d0=rulers.d0_tm(max(len(CA_a), len(CA_b))))   # tm['D2'] = (n + m)/2 − S_TM
 ```
 
@@ -128,7 +137,7 @@ CPU (Intel i5-1335U, 10 threads, float64):
 
 Random start rotations come from `seed` (default 0) and frame-pair sampling from `seed`/`rng`, so results are
 deterministic for a given input, version and device. Values can differ in the last digits across BLAS/torch builds
-or between CPU and GPU. The paper's numbers were produced by framespace 0.2.0 and the scripts in the companion
+or between CPU and GPU. The paper's numbers were produced by framespace 0.2.0 (this package under its earlier name) and the scripts in the companion
 repository (see below), not by re-running this package.
 
 ## Modules
@@ -147,7 +156,7 @@ repository (see below), not by re-running this package.
 | `ensemble` | energy statistics (Δ², w̄, ratio, Δμ²₂, component ratio, regime boundary), incomplete U-statistics, ensemble cells, aligned-coordinate statistics, η₊, mean-point projection, shared-edge spread profiles, r_dyn |
 | `rulers` | D_{w,ℓ}, D_TM, d₀(L), TM-score forms, triangle-violation rate (numba; not imported by `__init__`) |
 
-Every public function and class has an English docstring (`help(fs.distance)`); `docs/API.md` lists them all with
+Every public function and class has an English docstring (`help(fc.distance)`); `docs/API.md` lists them all with
 signatures and is regenerated by `python tools/make_api_doc.py`. Changes between versions are in `CHANGELOG.md`.
 
 ## Tests
@@ -161,7 +170,7 @@ pytest tests
 
 ## Relation to the code that produced the paper
 
-The paper's analyses ran on framespace 0.2.0 (tag `v0.2.0`, commit 866995c; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framespace-paper (https://github.com/gaony571/framespace-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input):
+The paper's analyses ran on framespace 0.2.0 (this package under its earlier name; tag `v0.2.0`, commit 866995c; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framedchain-paper (https://github.com/gaony571/framedchain-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input; 0.4.0 renames the package to framedchain):
 
 | 0.3.x | As-run code |
 |---|---|

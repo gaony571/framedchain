@@ -1,8 +1,8 @@
-# framespace 0.3.3 — API reference
+# framedchain 0.4.0 — API reference
 
 Generated from the docstrings by `tools/make_api_doc.py`. Every name listed here except the `rulers` module is
-importable from the top level (`import framespace as fs; fs.distance(...)`); `rulers` needs numba and is
-imported explicitly (`from framespace import rulers`).
+importable from the top level (`import framedchain as fc; fc.distance(...)`); `rulers` needs numba and is
+imported explicitly (`from framedchain import rulers`).
 
 Conventions: a structure with L residues is an array (L − 1, 3, 3) of edge coordinates (one 3 × 3 term per
 Cα–Cα edge); batches add a leading axis and are zero-padded to a common length (`pad_stack`); ensembles are
@@ -278,7 +278,7 @@ one pair x (n, 3, 3), y (m, 3, 3), and collects the starts whose final score sat
 Returns dict: S_max, best_match (n, m) bool, scores (number of starts,), near (indices of nearly optimal starts),
 n_near, n_distinct (number of different correspondences found by the nearly optimal starts), intersection (n, m)
 bool (matches present in every nearly optimal correspondence).
-The same computation as align_all in code/r38_s0.py and the π̄ step in code/r38_p3.py of the framespace-paper
+The same computation as align_all in code/r38_s0.py and the π̄ step in code/r38_p3.py of the framedchain-paper
 repository (only the seed of the random start rotations is passed as seed).
 
 ## `reduced`
@@ -304,7 +304,7 @@ sample k to its own mean computed in advance, the start rotation of the pair (k,
 Every ensemble computation of the paper follows this rule: 128 starts between the mean points, one start per sample
 pair, band half-width 5 at first and doubled (up to the number of columns) only for pairs touching the band edge,
 float64. The functions here are the same computation as the code that ran (framespace_wip/stage0/band.py and
-red_pairs in code/r38_s0.py of the framespace-paper repository).
+red_pairs in code/r38_s0.py of the framedchain-paper repository).
 
 ### `center_path(match, m)` *(tensor)*
 
@@ -370,7 +370,7 @@ over D it is the generalisation.
 
 Estimation is an incomplete U-statistic: for each run pair the reduced-computation distances (reduced) of k frame
 pairs (default 2,000, without replacement) are averaged. All same-sequence cells of the paper computed by D use this
-(runpair_means and estats in code/r38_s0.py, code/r38_e7_30.py of the framespace-paper repository). Pairs of
+(runpair_means and estats in code/r38_s0.py, code/r38_e7_30.py of the framedchain-paper repository). Pairs of
 different length use the same formula (the ground distance D is the same everywhere).
 
 ### `energy_stats(C, B_P, B_Q, n_edges=None)`
@@ -450,7 +450,7 @@ One cell in aligned (Euclidean) coordinates (same sequence, fixed correspondence
 align_to_reference and flattened). All run pairs, all frame pairs within each run pair.
 Returns the energy_stats dict + a_P, a_Q (within-run mean distances), dmu (mean shift between run means per edge:
 cross − mean floor), logspread (log of the total-spread ratio of Q to P). The same computation as compare in
-code/r38_compare.py of the framespace-paper repository (aligned-coordinate versions of round37 and P2).
+code/r38_compare.py of the framedchain-paper repository (aligned-coordinate versions of round37 and P2).
 
 ## `geometry`
 
@@ -508,7 +508,7 @@ is a metric on the quotient (identifying insertion/removal of zero-cost terms an
 D_{w,ℓ}. Feature of edge i: (w·x_i, p_i/ℓ) (x_i = s_i R_i/2, p_i the midpoint of the edge); δ is their Euclidean
 distance and c = w‖x‖.
     D² = w²(‖X‖² + ‖Y‖²) − S,  S = max Σ_{(i,j)∈π} [2w²⟨x_i, U y_j⟩ − ‖p_i − U q_j − t‖²/ℓ²].
-  As ℓ → ∞ this is the basic distance (framespace.sq_distance) times w². The value at (w, ℓ) is w²·D²(1, wℓ), so the
+  As ℓ → ∞ this is the basic distance (framedchain.sq_distance) times w². The value at (w, ℓ) is w²·D²(1, wℓ), so the
   only effective parameter is wℓ.
 D_TM. Feature of residue i: P_i (the Cα position); δ(a, b) = f(‖a − b‖/d₀), f(r) = r/√(1 + r²) (concave, increasing,
 f(0) = 0, hence a metric); c² = 1/2.
@@ -526,7 +526,7 @@ The two are alternated from many poses and the best is kept. Starts: fragment-pa
 superposition of TM-align), gapless threading, (search) superpositions of sub-fragments of the found correspondence
 (the search of the TM-score program), and poses given from outside (e.g. the TM-align pose).
 The computed value is an upper bound on D; there is no certificate (branch and bound). The inner loops run in numba
-(pip install framespace[rulers]). This module is the same computation as framespace_wip/stage0/rulers.py used for the
+(pip install framedchain[rulers]). This module is the same computation as framespace_wip/stage0/rulers.py used for the
 paper (the re-implementation of TM-align in the conventional column, the timing table).
 
 ### `edge_positions(x)`
