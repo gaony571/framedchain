@@ -161,7 +161,7 @@ pytest tests
 
 ## Relation to the code that produced the paper
 
-The paper's analyses ran on framespace 0.2.0 (commit efcdd42; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framespace-paper (https://github.com/gaony571/framespace-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input):
+The paper's analyses ran on framespace 0.2.0 (tag `v0.2.0`, commit 866995c; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framespace-paper (https://github.com/gaony571/framespace-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input):
 
 | 0.3.x | As-run code |
 |---|---|
