@@ -37,7 +37,7 @@ def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, level0
     Rx, sx = _frames_and_scale(x)
     Ry, sy = _frames_and_scale(y)
     if not (sx > 0).all() or not (sy > 0).all():
-        raise ValueError('bnb accepts only real structures (terms s·R/2 without zero terms)')
+        raise ValueError('bnb accepts only real structures (terms s*R/2 without zero terms)')
     C = quat_mul(mat_to_quat(Rx)[:, None], quat_conj(mat_to_quat(Ry))[None])      # (n, m, 4)
     W = sx[:, None] * sy[None]                                                     # (n, m)
     n, m = len(x), len(y)

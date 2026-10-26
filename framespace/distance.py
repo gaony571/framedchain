@@ -36,6 +36,7 @@ class Alignment:
 
 
 def as_tensor(x, device=None, dtype=None):
+    """numpy array or tensor -> tensor (non-floating inputs become float64; device and dtype kept unless given)."""
     t = torch.as_tensor(np.asarray(x) if not torch.is_tensor(x) else x)
     return t.to(device=device or t.device, dtype=dtype or (t.dtype if t.is_floating_point() else torch.float64))
 
@@ -51,6 +52,7 @@ def pad_stack(points, n=None):
 
 
 def sq_norm(x):
+    """Squared norm ‖x‖² of a point (n, 3, 3), or of each point of a batch (P, n, 3, 3) (tensor)."""
     return (x ** 2).sum((-1, -2, -3))
 
 
@@ -58,7 +60,12 @@ def align(x, y, starts=None, n_random=127, iters=10, seed=0, improve_tol=1e-7):
     """x (P, n, 3, 3), y (P, m, 3, 3) (or unbatched (n, 3, 3)). Without starts (P, s, 3, 3): identity + n_random random rotations.
     iters: maximum number of alternations between correspondence and rotation. improve_tol: a start stops when it
     improves by less than this (relative). seed: seed of the random start rotations.
+    Inputs may be numpy arrays or tensors; y and starts are converted to the dtype and device of x.
     Returns an Alignment (score S, rotation U, matches)."""
+    x = as_tensor(x)
+    y = as_tensor(y).to(x)
+    if starts is not None:
+        starts = as_tensor(starts).to(x)
     single = x.dim() == 3
     if single:
         x, y = x[None], y[None]
@@ -105,6 +112,9 @@ def sq_distance(x, y, **kw):
 
 
 def distance(x, y, **kw):
+    """Distance d(x, y) and the alignment (score S, rotation U applied to y, matches). x (n, 3, 3) and y (m, 3, 3), or
+    batches (P, n, 3, 3), (P, m, 3, 3) zero-padded to a common length; numpy arrays or tensors. **kw goes to align
+    (n_random, iters, seed, starts). The value is an upper bound on d (certify with bnb)."""
     d2, a = sq_distance(x, y, **kw)
     return d2.sqrt(), a
 

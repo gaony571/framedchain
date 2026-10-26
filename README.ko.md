@@ -53,6 +53,12 @@ pip install -e .[test]    # pytest
 pip install -e .[rulers]  # 자의 묶음 D_{w,ℓ}·D_TM (numba)
 ```
 
+PyPI 에는 없다. 저장소에서 바로 설치하려면 `pip install "framespace @ git+https://github.com/gaony571/framespace@v0.3.3"`.
+Python 3.12 (numpy 2.5, torch 2.14, scipy 1.18, numba 0.68) 에서 시험했다. 빠른 시작은 `python examples/quickstart.py`
+(입력 파일 없음, 기대 출력 `examples/quickstart_output.txt`), 함수 목록은 `docs/API.md`, 바뀐 것은 `CHANGELOG.md`.
+계산 시간·메모리(예: 노트북 CPU 에서 200 × 210 변 쌍 128 출발 22 초, 32 출발 6.4 초)와 재현성 안내는 영문 README 의
+Performance and memory, Reproducibility 절에 있다.
+
 ## 쓰기
 
 ```python

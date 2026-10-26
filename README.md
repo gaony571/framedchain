@@ -49,21 +49,36 @@ If you change `l0`, pass the same value when building coordinates and when readi
 
 ## Install
 
+framespace is not on PyPI. Install it from the GitHub repository (a tagged version keeps results reproducible):
+
 ```
-pip install -e .          # numpy, torch, scipy
-pip install -e .[ot]      # weighted transport with POT (otherwise scipy LP)
-pip install -e .[test]    # pytest
-pip install -e .[rulers]  # D_{w,ℓ} and D_TM (numba)
+pip install "framespace @ git+https://github.com/gaony571/framespace@v0.3.3"
+pip install "framespace[ot,rulers,test] @ git+https://github.com/gaony571/framespace@v0.3.3"   # with the extras
 ```
 
-Tested with Python 3.12 (numpy 2.5, torch 2.14, scipy 1.18, numba 0.68); the code uses no syntax newer than Python 3.9.
+or from a clone: `pip install -e .` (extras: `.[ot]` weighted transport with POT, otherwise scipy LP; `.[rulers]`
+D_{w,ℓ} and D_TM with numba; `.[test]` pytest). Dependencies are numpy, scipy and torch. On Linux without a GPU,
+installing torch from the CPU index first avoids the large CUDA wheels:
+`pip install torch --index-url https://download.pytorch.org/whl/cpu`.
+
+Tested with Python 3.12 (numpy 2.5, torch 2.14, scipy 1.18, numba 0.68) on CPU; the code uses no syntax newer than
+Python 3.9. GPU use is a matter of passing CUDA tensors (all computations follow the device of the inputs).
+
+## Quick start
+
+```
+python examples/quickstart.py      # no input files; compare with examples/quickstart_output.txt
+```
+
+It builds two synthetic backbones and prints the distance, its certificate, the matched/gap split, the normalised
+distance and the energy statistic between two small ensembles (under a minute on a laptop CPU).
 
 ## Use
 
 ```python
 import framespace as fs
 
-x = fs.coordinates_from_pdb('a.pdb')            # PDB with F models -> (F, L−1, 3, 3)
+x = fs.coordinates_from_pdb('a.pdb')            # PDB with F models -> numpy (F, L−1, 3, 3)
 y = fs.coordinates_from_backbone(CA, C, O)      # per-residue Cα, C, O (F, L, 3) -> (F, L−1, 3, 3)
 d, al = fs.distance(x[0], y[0])                 # distance and alignment (score S, rotation U, matches)
 cert = fs.bnb(x[0], y[0])                       # certified global optimum
@@ -79,6 +94,42 @@ r_dyn = fs.dynamics_similarity(FA, FB, shared_pairs)
 from framespace import rulers                       # needs numba
 tm = rulers.tm_align(CA_a, CA_b, d0=rulers.d0_tm(max(len(CA_a), len(CA_b))))   # tm['D2'] = (n + m)/2 − S_TM
 ```
+
+Inputs and units. A structure with L residues is an array (L − 1, 3, 3), one 3 × 3 term per Cα–Cα edge; batches add a
+leading axis and are zero-padded to a common length (`pad_stack`), which does not change any value. Atom coordinates
+are in Å. Only PDB files are read (`coordinates_from_pdb`); convert mmCIF files to PDB or pass Cα, C, O arrays to
+`coordinates_from_backbone`. High-level functions accept numpy arrays or torch tensors; float64 is recommended (the
+package computes in the dtype of the inputs).
+
+## Performance and memory
+
+`distance`/`align` run all starts of a pair together: the score array has starts × n × m entries and is rebuilt at
+each of up to `iters` alternations, with one dynamic-programming sweep over the n rows each time. Measured on a laptop
+CPU (Intel i5-1335U, 10 threads, float64):
+
+| Pair (n × m edges) | 128 starts (default) | 32 starts (`n_random=31`) | 8 starts (`n_random=7`) |
+|---|---|---|---|
+| 100 × 110 | 4 s | | |
+| 200 × 210 | 22 s | 6.4 s | 2.2 s |
+| 400 × 410 | 160 s | | |
+
+- Fewer starts are faster but more likely to stop in a local optimum (the value is always an upper bound on d);
+  `bnb` certifies a result. A CUDA GPU speeds this up substantially for long chains and batches.
+- Memory: the score array alone is 8 × starts × n × m bytes (about 160 MB for 128 starts and 400 × 400); the backward
+  pass of the DP needs a few times that. Batched calls multiply it by the batch size; `ensemble_w2` and
+  `structure_costs` take `chunk` to bound it.
+- For many pairs from two same-protein ensembles use the reduced computation (`MeanStart` + `pair_scores`, or
+  `ensemble_statistic`): one start per pair and a band around the mean-point correspondence. On the same laptop,
+  two 100-frame ensembles of 100 edges took 3.5 s for `MeanStart` and then about 950 pairs per second.
+- `rulers` compiles its inner loops with numba on first use (about 20 s once; cached afterwards when the package
+  directory is writable).
+
+## Reproducibility
+
+Random start rotations come from `seed` (default 0) and frame-pair sampling from `seed`/`rng`, so results are
+deterministic for a given input, version and device. Values can differ in the last digits across BLAS/torch builds
+or between CPU and GPU. The paper's numbers were produced by framespace 0.2.0 and the scripts in the companion
+repository (see below), not by re-running this package.
 
 ## Modules
 
@@ -96,19 +147,21 @@ tm = rulers.tm_align(CA_a, CA_b, d0=rulers.d0_tm(max(len(CA_a), len(CA_b))))   #
 | `ensemble` | energy statistics (Δ², w̄, ratio, Δμ²₂, component ratio, regime boundary), incomplete U-statistics, ensemble cells, aligned-coordinate statistics, η₊, mean-point projection, shared-edge spread profiles, r_dyn |
 | `rulers` | D_{w,ℓ}, D_TM, d₀(L), TM-score forms, triangle-violation rate (numba; not imported by `__init__`) |
 
-Docstrings and inline comments are in Korean; this README is the English reference for the public API.
+Every public function and class has an English docstring (`help(fs.distance)`); `docs/API.md` lists them all with
+signatures and is regenerated by `python tools/make_api_doc.py`. Changes between versions are in `CHANGELOG.md`.
 
 ## Tests
 
 ```
+pip install -e .[test,rulers]
 pytest tests
 ```
 
-`tests/test_space.py` checks the definitions and properties on synthetic structures (quaternions, Procrustes, atom ↔ coordinate ↔ Cα round trips, PDB round trip, invariances, truncation and edge-shrink laws, triangle inequality, shortest geodesic, d_fix as an upper bound, scales, mean point, invariant table, certificate, optimal transport, ensemble W₂). `tests/test_paper_methods.py` checks the paper's computations (banded DP = blocked full DP, reduced computation equals the full computation and is an upper bound, band widening, Δ² = cross energy distance − mean floor for any distance, the ratio identity, Δμ²₂ = run-mean shift in Euclidean coordinates, null vs shifted ensembles, η₊, spread-profile invariance, projection, matched + gap = d², D̂, near-optimal sets, aligned-coordinate statistics). `tests/test_rulers.py` (skipped without numba) checks the ruler family.
+`tests/test_space.py` checks the definitions and properties on synthetic structures (quaternions, Procrustes, atom ↔ coordinate ↔ Cα round trips, PDB round trip, invariances, truncation and edge-shrink laws, triangle inequality, shortest geodesic, d_fix as an upper bound, scales, mean point, invariant table, certificate, optimal transport, ensemble W₂). `tests/test_paper_methods.py` checks the paper's computations (banded DP = blocked full DP, reduced computation equals the full computation and is an upper bound, band widening, Δ² = cross energy distance − mean floor for any distance, the ratio identity, Δμ²₂ = run-mean shift in Euclidean coordinates, null vs shifted ensembles, η₊, spread-profile invariance, projection, matched + gap = d², D̂, near-optimal sets, aligned-coordinate statistics). `tests/test_rulers.py` (skipped without numba) checks the ruler family. `tests/test_usage.py` checks the user-facing paths (numpy and mixed inputs, PDB files on disk, batching with zero padding, ensembles of different lengths). 46 tests, about a minute on a laptop CPU.
 
 ## Relation to the code that produced the paper
 
-The paper's analyses ran on framespace 0.2.0 (commit efcdd42; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framespace-paper (https://github.com/gaony571/framespace-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms):
+The paper's analyses ran on framespace 0.2.0 (commit efcdd42; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framespace-paper (https://github.com/gaony571/framespace-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input):
 
 | 0.3.x | As-run code |
 |---|---|
@@ -129,3 +182,5 @@ Frame-pair sampling order differs between scripts (seeds derived from domain nam
 ## Licence and citation
 
 MIT licence, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper and this software (`CITATION.cff`).
+
+Questions and bug reports: GitHub issues of this repository.

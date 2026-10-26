@@ -20,4 +20,4 @@ from .parts import split_sq_distance, normalized_distance, near_optimal_alignmen
 from .reduced import center_path, band_windows, dp_score_band, align_band, self_rotations, MeanStart, pair_scores
 from .ensemble import energy_stats, mean_shift2, component_ratio, regime_boundary, frame_pairs, run_pair_means, ensemble_statistic, eta_plus, project_to_real, edge_spread_profile, dynamics_similarity, aligned_energy_stats
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'

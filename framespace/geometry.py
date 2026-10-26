@@ -33,6 +33,7 @@ def polar(G):
 
 
 def quat_to_mat(q):
+    """Unit quaternion (..., 4) in (w, x, y, z) order -> rotation matrix (..., 3, 3)."""
     w, x, y, z = q.unbind(-1)
     return torch.stack([1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w),
                         2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w),
@@ -63,6 +64,7 @@ def mat_to_quat(R):
 
 
 def quat_mul(a, b):
+    """Quaternion product a ⊗ b (..., 4)."""
     aw, ax, ay, az = a.unbind(-1)
     bw, bx, by, bz = b.unbind(-1)
     return torch.stack([aw * bw - ax * bx - ay * by - az * bz,
@@ -72,10 +74,12 @@ def quat_mul(a, b):
 
 
 def quat_conj(q):
+    """Quaternion conjugate (w, −x, −y, −z)."""
     return q * q.new_tensor([1.0, -1.0, -1.0, -1.0])
 
 
 def rotvec_to_quat(r):
+    """Rotation vector (..., 3) -> unit quaternion (..., 4)."""
     th = r.norm(dim=-1, keepdim=True)
     k = torch.where(th > 1e-12, torch.sin(th / 2) / th.clamp_min(1e-12), torch.full_like(th, 0.5))
     return torch.cat([torch.cos(th / 2), k * r], -1)
