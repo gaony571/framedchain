@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below (and the accompanying paper once published)."
+title: "framespace: a frame-sequence space for protein backbones of any length"
+version: 0.3.1
+license: MIT
+type: software
+authors:
+  - family-names: "An"
+    given-names: "Hyeonsu"
+repository-code: "https://github.com/gaony571/framespace"
+keywords:
+  - protein structure
+  - metric
+  - structural alignment
+  - molecular dynamics ensembles
+  - energy distance

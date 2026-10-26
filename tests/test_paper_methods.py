@@ -199,3 +199,30 @@ def test_normalized_distance():
     D = np.array([[float(fs.normalized_distance(p, q)) for q in xs] for p in xs])
     assert np.allclose(np.diag(D), 0, atol=1e-6) and (D >= 0).all() and (D <= 1 + 1e-12).all()
     assert D[0, 2] <= D[0, 1] + D[1, 2] + 1e-9
+
+
+# ---------- 거의 최적 대응과 맞춘 좌표 판 ----------
+
+def test_near_optimal_alignments():
+    a = chain(20, 71)
+    b = insert_edge(a, 9, 3)
+    r = fs.near_optimal_alignments(a, b, eps=0.005)
+    d2, al = fs.sq_distance(a, b)
+    assert abs(r['S_max'] - float(al.score)) < 1e-9                       # 같은 출발 규칙이면 align 과 같은 최댓값
+    assert r['n_near'] >= 1 and r['n_distinct'] >= 1
+    assert (r['intersection'] <= r['best_match']).all()                  # 교집합은 최적 대응 안에 있다
+    r0 = fs.near_optimal_alignments(a, b, eps=0.0)
+    assert (r0['intersection'] == r0['best_match']).all() or r0['n_distinct'] > 1
+
+
+def test_aligned_energy_stats_matches_definition():
+    rng = np.random.default_rng(5)
+    P = [rng.normal(size=(8, 18)) * 0.2 for _ in range(3)]
+    Q = [rng.normal(size=(8, 18)) * 0.3 + 0.4 for _ in range(2)]
+    o = en.aligned_energy_stats(P, Q, n_edges=2)
+    pm = lambda A, B: np.sqrt(((A[:, None] - B[None]) ** 2).sum(-1)).mean()
+    C = np.mean([pm(p, q) for p in P for q in Q])
+    BP = np.mean([pm(a, b) for a, b in itertools.combinations(P, 2)])
+    BQ = pm(Q[0], Q[1])
+    assert abs(o['D2'] - (2 * C - BP - BQ)) < 1e-10 and o['dmu'] > 0 and o['logspread'] > 0
+    assert abs(o['D2_sqrt_n'] - o['D2'] / np.sqrt(2)) < 1e-12

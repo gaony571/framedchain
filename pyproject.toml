@@ -4,9 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "framespace"
-version = "0.3.0"
+version = "0.3.1"
 description = "Frame-sequence space for protein backbones: one coordinate system and one proven metric for structures of any length"
 readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Hyeonsu An"}]
 requires-python = ">=3.9"
 dependencies = ["numpy", "torch", "scipy"]
 
@@ -14,6 +16,9 @@ dependencies = ["numpy", "torch", "scipy"]
 test = ["pytest"]
 ot = ["pot"]
 rulers = ["numba"]
+
+[project.urls]
+Repository = "https://github.com/gaony571/framespace"
 
 [tool.setuptools]
 packages = ["framespace"]

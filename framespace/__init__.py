@@ -12,8 +12,8 @@ from .certify import bnb
 from .operations import aligned_columns, geodesic, align_to_reference, mean_point
 from .table import relative_table, determinants, from_table
 from .transport import optimal_plan, structure_costs, ensemble_w2
-from .parts import split_sq_distance, normalized_distance
+from .parts import split_sq_distance, normalized_distance, near_optimal_alignments
 from .reduced import center_path, band_windows, dp_score_band, align_band, self_rotations, MeanStart, pair_scores
-from .ensemble import energy_stats, mean_shift2, component_ratio, regime_boundary, frame_pairs, run_pair_means, ensemble_statistic, eta_plus, project_to_real, edge_spread_profile, dynamics_similarity
+from .ensemble import energy_stats, mean_shift2, component_ratio, regime_boundary, frame_pairs, run_pair_means, ensemble_statistic, eta_plus, project_to_real, edge_spread_profile, dynamics_similarity, aligned_energy_stats
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'

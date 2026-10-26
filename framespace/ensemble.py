@@ -156,3 +156,35 @@ def dynamics_similarity(Fa, Fb, pairs, iters=3):
     vb = edge_spread_profile(Fb, pairs[:, 1], iters)
     ra, rb = np.argsort(np.argsort(va)), np.argsort(np.argsort(vb))
     return float(np.corrcoef(ra, rb)[0, 1])
+
+
+def aligned_energy_stats(P, Q, n_edges):
+    """맞춘 좌표(유클리드) 판의 칸 하나 (같은 서열, 대응 고정). P, Q: 실행 목록, 실행마다 (프레임 수, 9·변 수) 의
+    맞춘 좌표(공통 기준 평균 점에 align_to_reference 로 맞춘 것을 펼친 것). 모든 실행 쌍, 실행 쌍마다 모든 프레임 쌍.
+    반환: energy_stats 의 dict + a_P, a_Q (실행 안 평균 거리), dmu (실행 평균 사이 평균 이동/변: 교차 − 바닥 평균),
+    logspread (Q 와 P 의 총퍼짐 비의 로그). code/r38_compare.py 의 compare 와 같은 계산이다(round37 맞춘 좌표 판·P2 맞춘 좌표 원래 판)."""
+    P = [np.asarray(a, np.float64) for a in P]
+    Q = [np.asarray(b, np.float64) for b in Q]
+
+    def sqd(A, B):
+        return np.maximum((A * A).sum(1)[:, None] + (B * B).sum(1)[None, :] - 2 * A @ B.T, 0)
+
+    def pmean(A, B=None):
+        if B is None:
+            D = np.sqrt(sqd(A, A))
+            return float((D.sum() - np.trace(D)) / (len(A) * (len(A) - 1)))
+        return float(np.sqrt(sqd(A, B)).mean())
+
+    C = float(np.mean([pmean(a, b) for a in P for b in Q]))
+    BP = float(np.mean([pmean(a, b) for a, b in itertools.combinations(P, 2)]))
+    BQ = float(np.mean([pmean(a, b) for a, b in itertools.combinations(Q, 2)]))
+    mP, mQ = [a.mean(0) for a in P], [b.mean(0) for b in Q]
+    m2 = lambda u, v: float(((u - v) ** 2).sum())
+    cm = np.mean([m2(u, v) for u in mP for v in mQ])
+    fP = np.mean([m2(u, v) for u, v in itertools.combinations(mP, 2)])
+    fQ = np.mean([m2(u, v) for u, v in itertools.combinations(mQ, 2)])
+    sp = lambda rs: np.mean([((r - r.mean(0)) ** 2).sum(1).mean() for r in rs])
+    o = energy_stats(C, BP, BQ, n_edges)
+    o.update(a_P=float(np.mean([pmean(a) for a in P])), a_Q=float(np.mean([pmean(b) for b in Q])),
+             dmu=float((cm - (fP + fQ) / 2) / n_edges), logspread=float(np.log(sp(Q) / sp(P))))
+    return o
