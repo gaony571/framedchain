@@ -1,4 +1,4 @@
-"""SQFORM_SPACE.md 의 확정된 정의와 성질 시험. 합성 프레임 열로 잰다 (pytest)."""
+"""Tests of the definitions and proven properties of the space, on synthetic frame sequences (pytest)."""
 import math
 
 import numpy as np
@@ -6,11 +6,11 @@ import torch
 
 import framespace as fs
 
-LOC_C, LOC_O = np.array([1.42, 0.53, 0.01]), np.array([1.65, 1.74, 0.01])   # 트랜스 틀 (1.4절 표)
+LOC_C, LOC_O = np.array([1.42, 0.53, 0.01]), np.array([1.65, 1.74, 0.01])   # trans frame (local positions of C and O)
 
 
 def chain(n, seed, noise=0.15, cis=()):
-    """이웃 변이 서로 비슷한 회전을 이루는 실제 구조의 좌표 (n, 3, 3) = s R / 2. 트랜스 s ≈ 1 ± 0.016, cis 자리는 s = 0.81."""
+    """Coordinates (n, 3, 3) = s R / 2 of a real structure whose neighbouring edges have similar rotations. Trans s ≈ 1 ± 0.016, cis positions s = 0.81."""
     g = torch.Generator().manual_seed(seed)
     step = fs.expmap(torch.tensor([0.3, 1.2, 0.4], dtype=torch.float64))
     R = [torch.eye(3, dtype=torch.float64)]
@@ -35,7 +35,7 @@ def test_procrustes_and_polar():
 
 
 def test_coordinates_roundtrip():
-    """원자 -> 좌표 -> Cα: 좌표만으로 Cα 가 정확히 복원되고 길이·시스가 읽힌다 (1.2, 1.4절)."""
+    """Atoms -> coordinates -> Cα: Cα is recovered exactly from the coordinates alone, and lengths and cis bonds can be read off."""
     x = chain(30, 3, cis=(7,)).numpy()
     CA = fs.ca_trace(x)
     R, s = fs.frames_of(x)
@@ -67,7 +67,7 @@ def test_pdb_roundtrip(tmp_path):
 
 
 def test_settable_constants():
-    """l0 와 시스 경계를 바꿀 수 있다. l0 를 바꿔도 Cα 복원은 같은 l0 로 하면 그대로다."""
+    """l0 and the cis threshold are settable. With a different l0, Cα recovery with the same l0 is unchanged."""
     x = chain(12, 5, cis=(3,)).numpy()
     CA = fs.ca_trace(x)
     R, s = fs.frames_of(x)
@@ -103,7 +103,7 @@ def test_zero_insertion_invariance():
 
 
 def test_truncation_law():
-    """구조와 그 앞부분 사이의 d² = 잘라낸 항의 노름² 합 (2.5절. 트랜스만이면 0.75 × 잘라낸 변 수)."""
+    """d² between a structure and its prefix = sum of squared norms of the removed terms (0.75 × number of removed edges if all are trans)."""
     x = chain(40, 5, cis=(36,))
     for k in (1, 5, 13):
         d2, _ = fs.sq_distance(x, x[:-k])
@@ -111,7 +111,7 @@ def test_truncation_law():
 
 
 def test_edge_shrink_law():
-    """변 하나를 f 배로 줄인 구조와의 거리 = (1 − f) × 그 항의 노름 (2.3절)."""
+    """Distance to the structure with one edge scaled by f = (1 − f) × the norm of that term."""
     x = chain(20, 6)
     for f in (0.0, 0.25, 0.5, 0.9):
         y = x.clone()
@@ -166,7 +166,7 @@ def test_mean_point_of_rotated_copies():
 
 
 def test_mean_point_converges_and_ignores_start():
-    """흩어진 앙상블: 수렴하고, 시작 구조를 바꿔도 회전 하나 차이의 같은 평균, 그 평균은 정렬·평균의 고정점."""
+    """Spread ensemble: converges; different starting structures give the same mean up to one rotation; the mean is a fixed point of align-and-average."""
     x = chain(16, 14)
     g = torch.Generator().manual_seed(15)
     E = torch.stack([torch.einsum('xy,nyz->nxz', fs.random_rotations(1, seed=20 + f)[0],
@@ -205,7 +205,7 @@ def test_certificate():
 
 
 def _ensemble(base, F, seed, sigma=0.08):
-    """base 의 변마다 작은 회전 요동과 표본마다의 전체 회전을 준 앙상블 (F, n, 3, 3)."""
+    """Ensemble (F, n, 3, 3) with small rotational fluctuations on every edge of base and a global rotation per sample."""
     g = torch.Generator().manual_seed(seed)
     W = fs.expmap(sigma * torch.randn(F, len(base), 3, generator=g, dtype=torch.float64))
     E = torch.einsum('nxy,fnyz->fnxz', base, W)
@@ -213,7 +213,7 @@ def _ensemble(base, F, seed, sigma=0.08):
 
 
 def test_optimal_plan():
-    """할당 문제와 선형계획이 같은 값을 내고, 무게를 주면 계획의 주변 분포가 무게다."""
+    """The assignment problem and the linear program give the same value; with weights the marginals of the plan are the weights."""
     rng = np.random.default_rng(2)
     C = rng.random((7, 7))
     P1 = fs.optimal_plan(C)
@@ -225,7 +225,7 @@ def test_optimal_plan():
 
 
 def test_ensemble_w2():
-    """앙상블 W₂: 자기 0, 대칭, 표본을 돌려도·영행렬을 끼워도 같고, 삼각부등식."""
+    """Ensemble W₂: zero to itself, symmetric, unchanged by rotating samples or inserting zero matrices, and the triangle inequality."""
     A = _ensemble(chain(14, 1), 6, 1)
     B = _ensemble(chain(14, 2), 6, 2)
     C = _ensemble(chain(16, 3), 6, 3)

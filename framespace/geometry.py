@@ -1,9 +1,9 @@
-"""회전과 사원수 도구. 행렬은 (..., 3, 3), 사원수는 (w, x, y, z) 순서다."""
+"""Rotation and quaternion tools. Matrices are (..., 3, 3); quaternions are ordered (w, x, y, z)."""
 import torch
 
 
 def hat(v):
-    """회전 벡터 (..., 3) -> 반대칭 행렬 (..., 3, 3)."""
+    """Rotation vector (..., 3) -> skew-symmetric matrix (..., 3, 3)."""
     O = torch.zeros_like(v[..., 0])
     return torch.stack([torch.stack([O, -v[..., 2], v[..., 1]], -1),
                         torch.stack([v[..., 2], O, -v[..., 0]], -1),
@@ -11,12 +11,12 @@ def hat(v):
 
 
 def expmap(w):
-    """회전 벡터 -> 회전 행렬."""
+    """Rotation vector -> rotation matrix."""
     return torch.linalg.matrix_exp(hat(w))
 
 
 def procrustes(M):
-    """argmax_{U in SO(3)} tr(U M). M = W S Vh 이면 U = V diag(1, 1, det) Wᵀ."""
+    """argmax_{U in SO(3)} tr(U M). If M = W S Vh then U = V diag(1, 1, det) Wᵀ."""
     W, S, Vh = torch.linalg.svd(M)
     V = Vh.transpose(-1, -2)
     D = torch.ones_like(S)
@@ -25,7 +25,7 @@ def procrustes(M):
 
 
 def polar(G):
-    """일반 3×3 행렬에 가장 가까운 회전과 그 크기(평균 특이값). 영행렬 쪽으로 줄어든 열은 크기가 작다."""
+    """Nearest rotation to a general 3×3 matrix and its size (mean singular value). Terms shrunk towards zero have a small size."""
     W, S, Vh = torch.linalg.svd(G)
     D = torch.ones_like(S)
     D[..., -1] = torch.sign(torch.det(W @ Vh))
@@ -40,7 +40,7 @@ def quat_to_mat(q):
 
 
 def mat_to_quat(R):
-    """회전 행렬 -> 단위 사원수 (부호는 w ≥ 0 쪽이 아니라 계산된 갈래를 따른다)."""
+    """Rotation matrix -> unit quaternion (the sign follows the branch that is computed, not w ≥ 0)."""
     R = torch.as_tensor(R)
     r00, r01, r02 = R[..., 0, 0], R[..., 0, 1], R[..., 0, 2]
     r10, r11, r12 = R[..., 1, 0], R[..., 1, 1], R[..., 1, 2]
@@ -82,7 +82,7 @@ def rotvec_to_quat(r):
 
 
 def random_rotations(n, seed=None, generator=None, dtype=torch.float64, device='cpu'):
-    """균일한 무작위 회전 n 개. 난수는 CPU 에서 만들고 device 로 옮긴다."""
+    """n uniformly random rotations. Random numbers are drawn on the CPU and moved to device."""
     if generator is None:
         generator = torch.Generator().manual_seed(0 if seed is None else seed)
     q = torch.randn(n, 4, generator=generator, dtype=torch.float64)

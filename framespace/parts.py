@@ -1,12 +1,14 @@
-"""거리의 분해와 정규화 (정의역 문서 2.2절 따름, 결과 문서 1.1).
+"""Splitting and normalising the distance.
 
-짝 몫·빈칸 몫. 최적 정렬 (π, U) 에서
-    d² = Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{짝 없는 i} ‖x_i‖² + Σ_{짝 없는 j} ‖y_j‖²  =  짝 몫 + 빈칸 몫
-로 정확히 나뉜다. 짝 하나를 빈칸 둘로 바꾸면 θ > 120° 에서 비용이 줄어(길이 비와 무관) 최적 정렬이 그 짝을 끊으므로,
-빈칸 몫에는 삽입·결실만이 아니라 서열상 대응하지만 120° 넘게 돈 변도 들어간다(빈칸 몫 ≠ 삽입 수; 따름 2).
-분해는 정렬에 달려 있으므로 거의 최적인 정렬이 여럿이면 그 사이의 흔들림을 따로 본다.
+Matched part and gap part. At an optimal alignment (π, U)
+    d² = Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{unmatched i} ‖x_i‖² + Σ_{unmatched j} ‖y_j‖²  =  matched part + gap part
+exactly. Replacing one match by two gaps lowers the cost when θ > 120° (whatever the length ratio), so the optimal
+alignment breaks such a match: the gap part contains not only insertions and deletions but also edges that correspond
+in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
+The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
-평균 정규화. D̂ = d / √(‖x‖² + ‖y‖²) 는 모든 길이에서 거리이고 값은 [0, 1] 이다(Hilbert 단위 구면 묻기; 따름정리).
+Mean normalisation. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
+unit sphere of a Hilbert space).
 """
 import numpy as np
 import torch
@@ -16,9 +18,10 @@ from .geometry import procrustes, random_rotations
 
 
 def split_sq_distance(x, y, alignment=None, **kw):
-    """d² 를 짝 몫과 빈칸 몫으로 나눈다. x (n, 3, 3), y (m, 3, 3) 또는 묶음 (P, n, 3, 3), (P, m, 3, 3).
-    alignment 를 주지 않으면 align(x, y, **kw) 로 정렬한다(상계 계산).
-    반환 dict: d2, matched (짝 몫), gap (빈칸 몫), n_matched (짝 수), gap_share (빈칸 몫 / d², d² = 0 이면 0), alignment."""
+    """Splits d² into the matched part and the gap part. x (n, 3, 3), y (m, 3, 3) or batches (P, n, 3, 3), (P, m, 3, 3).
+    Without alignment, align(x, y, **kw) is used (upper-bound computation).
+    Returns dict: d2, matched (matched part), gap (gap part), n_matched (number of matches), gap_share (gap part / d²,
+    0 if d² = 0), alignment."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)
     al = alignment or align(x, y, **kw)
@@ -40,7 +43,7 @@ def split_sq_distance(x, y, alignment=None, **kw):
 
 
 def normalized_distance(x, y, d=None, **kw):
-    """평균 정규화 거리 D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. d 를 주지 않으면 거리를 계산한다(상계)."""
+    """Mean-normalised distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound)."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)
     if d is None:
@@ -50,12 +53,16 @@ def normalized_distance(x, y, d=None, **kw):
 
 
 def near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, improve_tol=1e-7):
-    """거의 최적인 대응들과 그 교집합 (공통 정의역 논문 1b·1c 의 공동 관문, 첫 세션 0.4 의 정렬 불확실성).
-    align 과 같은 계산(항등 + 무작위 n_random 출발, 대응과 회전을 번갈아)을 한 쌍 x (n, 3, 3), y (m, 3, 3) 에 하고,
-    출발마다의 최종 점수가 S ≥ (1 − eps) S_max 인 출발을 "거의 최적" 으로 모은다.
-    반환 dict: S_max, best_match (n, m) bool, scores (출발 수,), near (거의 최적 출발 번호), n_near,
-    n_distinct (거의 최적 출발들이 찾은 서로 다른 대응의 수), intersection (n, m) bool (거의 최적 대응 모두에 있는 짝).
-    code/r38_s0.py 의 align_all, code/r38_p3.py 의 π̄ 단계와 같은 계산이다(무작위 출발 회전의 씨앗만 seed 로 준다)."""
+    """Nearly optimal correspondences and their intersection (the joint gate of experiments 1b and 1c of the paper, and
+    the alignment uncertainty of its first session).
+    Runs the same computation as align (identity + n_random random starts, alternating correspondence and rotation) on
+    one pair x (n, 3, 3), y (m, 3, 3), and collects the starts whose final score satisfies S ≥ (1 − eps) S_max as
+    "nearly optimal".
+    Returns dict: S_max, best_match (n, m) bool, scores (number of starts,), near (indices of nearly optimal starts),
+    n_near, n_distinct (number of different correspondences found by the nearly optimal starts), intersection (n, m)
+    bool (matches present in every nearly optimal correspondence).
+    The same computation as align_all in code/r38_s0.py and the π̄ step in code/r38_p3.py of the framespace-paper
+    repository (only the seed of the random start rotations is passed as seed)."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)
     X, Y = x[None], y[None]

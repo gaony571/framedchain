@@ -1,11 +1,13 @@
-"""전역 최적의 보증 (SQFORM_SPACE.md 3.3절).
+"""Certificate of the global optimum (branch and bound over rotations).
 
-실제 구조의 항 x_k = s_k R_k / 2 에서 항 쌍의 점수는 ⟨x_k, U y_l⟩ = s_k t_l (⟨c_kl, u⟩² − 1/4)
-(c_kl = q_k ⊗ conj(p_l) 은 두 프레임의 사원수, u 는 U 의 사원수, s, t 는 길이 비).
-회전 벡터 공간 [−π, π]³ 을 정육면체 칸으로 나누면 칸 안의 모든 회전은 중심 u0 에서 S³ 위 각 ρ = √3 σ / 2 안에 있으므로
-점수 ≤ s_k t_l (cos²(max(0, φ0 − ρ)) − 1/4) (φ0 = arccos|⟨c, u0⟩|. 길이 비가 양수라 부등식이 그대로 선다).
-대응 DP 는 점수에 단조이므로 칸의 상한이 된다. 상한이 최선값 + 허용 폭보다 낮은 칸을 버리고 남은 칸을 8등분한다.
-실제 구조(모든 항이 s·R/2, s > 0)만 받는다.
+For terms of real structures x_k = s_k R_k / 2, the score of a term pair is ⟨x_k, U y_l⟩ = s_k t_l (⟨c_kl, u⟩² − 1/4)
+(c_kl = q_k ⊗ conj(p_l) is the quaternion of the two frames, u is the quaternion of U, s and t are length ratios).
+If the rotation-vector cube [−π, π]³ is divided into cubic cells, every rotation in a cell lies within the angle
+ρ = √3 σ / 2 on S³ of the cell centre u0, so
+score ≤ s_k t_l (cos²(max(0, φ0 − ρ)) − 1/4)   (φ0 = arccos|⟨c, u0⟩|; the inequality holds because length ratios are positive).
+The correspondence DP is monotone in the scores, so this gives an upper bound for the cell. Cells whose upper bound is
+below the best value + tolerance are discarded and the remaining cells are split into 8.
+Only real structures (every term s·R/2 with s > 0) are accepted.
 """
 import time
 
@@ -17,16 +19,17 @@ from .geometry import mat_to_quat, quat_conj, quat_mul, quat_to_mat, rotvec_to_q
 
 
 def _frames_and_scale(x):
-    s = 2.0 * x[..., :, 0].norm(dim=-1)                 # 길이 비 (첫 열의 노름은 s/2)
+    s = 2.0 * x[..., :, 0].norm(dim=-1)                 # length ratio (the norm of the first column is s/2)
     return 2.0 * x / s[:, None, None], s
 
 
 def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, level0=3, n_refine=16, batch=None, iters=10, device=None, verbose=False):
-    """x (n, 3, 3), y (m, 3, 3) 는 실제 구조. S 의 전역 최댓값을 허용 폭 안에서 보증한다.
-    허용 폭은 tol (S 의 절대값) 또는 rel_tol × 0.75 max(n, m) (sim_long 단위, 기본 0.005).
-    n_starts: 처음 하한을 잡는 출발 회전 수. level0: 첫 칸 나눔 (한 축 2^level0 칸). n_refine: 단계마다 하한을 다듬을 칸 수.
-    max_cells: 남은 칸이 이보다 많아지면 멈춘다(보증 실패). batch: 한 번에 계산할 칸 수 (기본은 n·m 에 맞춤).
-    반환: S_heur (출발 회전 n_starts 개의 값), S_lb, S_ub, tol, certified, 칸의 단계, DP 횟수, 시간."""
+    """x (n, 3, 3) and y (m, 3, 3) are real structures. Certifies the global maximum of S within a tolerance.
+    The tolerance is tol (absolute, in units of S) or rel_tol × 0.75 max(n, m) (sim_long units; default 0.005).
+    n_starts: number of start rotations for the initial lower bound. level0: initial grid (2^level0 cells per axis).
+    n_refine: number of cells whose lower bound is refined at each level.
+    max_cells: stop (certificate fails) if more cells than this remain. batch: cells per batch (default fitted to n·m).
+    Returns S_heur (value from n_starts start rotations), S_lb, S_ub, tol, certified, the grid level, number of DPs, time."""
     t0 = time.time()
     dev = device or (x.device if torch.is_tensor(x) else 'cpu')
     x = torch.as_tensor(np.asarray(x) if not torch.is_tensor(x) else x, dtype=torch.float64, device=dev)
@@ -34,7 +37,7 @@ def bnb(x, y, rel_tol=0.005, tol=None, max_cells=2_000_000, n_starts=128, level0
     Rx, sx = _frames_and_scale(x)
     Ry, sy = _frames_and_scale(y)
     if not (sx > 0).all() or not (sy > 0).all():
-        raise ValueError('bnb 는 실제 구조(영 항이 없는 s·R/2)만 받는다')
+        raise ValueError('bnb accepts only real structures (terms s·R/2 without zero terms)')
     C = quat_mul(mat_to_quat(Rx)[:, None], quat_conj(mat_to_quat(Ry))[None])      # (n, m, 4)
     W = sx[:, None] * sy[None]                                                     # (n, m)
     n, m = len(x), len(y)

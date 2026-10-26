@@ -1,11 +1,13 @@
-"""거리 (SQFORM_SPACE.md 2.1–2.2, 2.5, 3.1–3.2, 3.5절).
+"""The distance of the space.
 
-점은 3×3 행렬의 유한한 열. 영행렬을 끼우거나 빼도, 모든 항에 같은 회전을 왼쪽에 곱해도 같은 점이다.
-    d(x, y)² = min over (순서를 지키는 부분 대응 π, 회전 U) of
-               Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{i 짝 없음} ‖x_i‖² + Σ_{j 짝 없음} ‖y_j‖²
+A point is a finite sequence of 3×3 matrices. Inserting or removing zero matrices, or multiplying every term on
+the left by the same rotation, gives the same point.
+    d(x, y)² = min over (order-preserving partial correspondence π, rotation U) of
+               Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{i unmatched} ‖x_i‖² + Σ_{j unmatched} ‖y_j‖²
              = ‖x‖² + ‖y‖² − 2 S,   S = max Σ_{(i,j)∈π} ⟨x_i, U y_j⟩
-계산: 회전을 고정하면 대응은 동적계획법으로, 대응을 고정하면 회전은 3×3 SVD 로 정확히 나온다. 둘을 번갈아 하며
-무작위 회전 여러 개(기본 128개)에서 시작해 가장 좋은 것을 고른다. 계산값은 d 의 상계이고, 전역 최적은 certify.bnb 로 보증한다.
+Computation: for a fixed rotation the correspondence is exact by dynamic programming; for a fixed correspondence the
+rotation is exact by a 3×3 SVD. The two are alternated from several random start rotations (128 by default) and the
+best is kept. The computed value is an upper bound on d; certify.bnb certifies the global optimum.
 """
 import math
 from dataclasses import dataclass
@@ -17,8 +19,8 @@ from .geometry import procrustes, random_rotations
 
 
 def dp_score(K):
-    """순서를 지키는 1대1 부분 대응의 최대 점수. K (..., n, m) -> (...,).
-    F[i, j] = max(F[i−1, j], F[i, j−1], F[i−1, j−1] + K[i, j]). 자동 미분의 기울기가 짝지은 칸(0/1)이다."""
+    """Maximum score of an order-preserving one-to-one partial correspondence. K (..., n, m) -> (...,).
+    F[i, j] = max(F[i−1, j], F[i, j−1], F[i−1, j−1] + K[i, j]). The autograd gradient is the matched cells (0/1)."""
     F = K.new_zeros(K.shape[:-2] + (K.shape[-1] + 1,))
     for i in range(K.shape[-2]):
         G = torch.maximum(F[..., 1:], F[..., :-1] + K[..., i, :])
@@ -29,7 +31,7 @@ def dp_score(K):
 @dataclass
 class Alignment:
     score: torch.Tensor      # (P,) S
-    rotation: torch.Tensor   # (P, 3, 3) y 에 거는 회전 U
+    rotation: torch.Tensor   # (P, 3, 3) rotation U applied to y
     match: torch.Tensor      # (P, n, m) bool
 
 
@@ -39,7 +41,7 @@ def as_tensor(x, device=None, dtype=None):
 
 
 def pad_stack(points, n=None):
-    """길이가 다른 점들 [(n_i, 3, 3)] -> (P, N, 3, 3) 영 채움 (같은 점이다)."""
+    """Points of different lengths [(n_i, 3, 3)] -> (P, N, 3, 3), padded with zeros (the same points)."""
     points = [as_tensor(p) for p in points]
     n = n or max(len(p) for p in points)
     out = points[0].new_zeros((len(points), n, 3, 3))
@@ -53,9 +55,10 @@ def sq_norm(x):
 
 
 def align(x, y, starts=None, n_random=127, iters=10, seed=0, improve_tol=1e-7):
-    """x (P, n, 3, 3), y (P, m, 3, 3) (또는 묶음 없이 (n, 3, 3)). starts (P, s, 3, 3) 를 주지 않으면 항등 + 무작위 n_random 개.
-    iters: 대응과 회전을 번갈아 푸는 최대 횟수. improve_tol: 이보다 덜 오르면(상대값) 그 출발점은 멈춘다. seed: 무작위 출발 회전의 씨앗.
-    반환 Alignment (점수 S, 회전 U, 짝)."""
+    """x (P, n, 3, 3), y (P, m, 3, 3) (or unbatched (n, 3, 3)). Without starts (P, s, 3, 3): identity + n_random random rotations.
+    iters: maximum number of alternations between correspondence and rotation. improve_tol: a start stops when it
+    improves by less than this (relative). seed: seed of the random start rotations.
+    Returns an Alignment (score S, rotation U, matches)."""
     single = x.dim() == 3
     if single:
         x, y = x[None], y[None]
@@ -94,7 +97,7 @@ def align(x, y, starts=None, n_random=127, iters=10, seed=0, improve_tol=1e-7):
 
 
 def sq_distance(x, y, **kw):
-    """d² 와 정렬. x, y 는 (n, 3, 3) 또는 묶음 (P, n, 3, 3)."""
+    """d² and the alignment. x, y are (n, 3, 3) or batches (P, n, 3, 3)."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)
     a = align(x, y, **kw)
@@ -107,8 +110,9 @@ def distance(x, y, **kw):
 
 
 def fixed_sq_distance(x, y, kx=None, ky=None):
-    """대응을 아는 경우(3.5절): 대응(kx ↔ ky, 기본은 변 번호 그대로)을 고정하고 회전만 최적화한 d_fix². SVD 한 번으로 정확하다.
-    묶음 x (I, n, 3, 3), y (J, m, 3, 3) 의 모든 쌍 -> (I, J). d 의 상계다."""
+    """When the correspondence is known: d_fix² with the correspondence (kx ↔ ky; default: edge index to edge index)
+    fixed and only the rotation optimised; exact with one SVD.
+    All pairs of batches x (I, n, 3, 3), y (J, m, 3, 3) -> (I, J). An upper bound on d."""
     x, y = as_tensor(x), as_tensor(y).to(as_tensor(x))
     kx = np.arange(x.shape[1]) if kx is None else kx
     ky = np.arange(y.shape[1]) if ky is None else ky
@@ -118,24 +122,24 @@ def fixed_sq_distance(x, y, kx=None, ky=None):
     return (sq_norm(x)[:, None] + sq_norm(y)[None] - 2 * S).clamp_min(0)
 
 
-# 눈금 (2.5절). n, m 은 영이 아닌 항의 수.
+# Scales. n and m are the numbers of non-zero terms.
 def length_scaled(d, n, m):
-    """d / √(0.75 (n + m)): 0 ~ 1. 길이가 다른 쌍을 한 표에 놓을 때."""
+    """d / √(0.75 (n + m)): between 0 and 1. For tables of pairs of different lengths."""
     return d / math.sqrt(0.75 * (n + m))
 
 
 def sim_long(S, n, m):
-    """S / (0.75 max(n, m)): 긴 쪽 기준 유사도."""
+    """S / (0.75 max(n, m)): similarity normalised by the longer structure."""
     return S / (0.75 * max(n, m))
 
 
 def fixed_scaled(d_fix, n):
-    """d_fix / √(2n): 0 ~ 0.87. 한 단백질 안의 눈금."""
+    """d_fix / √(2n): between 0 and 0.87. A scale within one protein."""
     return d_fix / math.sqrt(2 * n)
 
 
 def match_to_map(match):
-    """짝 표시 (n, m) -> x 의 항마다 짝지은 y 의 항 번호 (없으면 −1)."""
+    """Match matrix (n, m) -> for each term of x the index of the matched term of y (−1 if unmatched)."""
     M = match.cpu().numpy() if torch.is_tensor(match) else np.asarray(match)
     mp = -np.ones(M.shape[0], int)
     k, l = np.nonzero(M)

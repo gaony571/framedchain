@@ -1,5 +1,6 @@
-"""자의 묶음(rulers) 시험: 정의와 계산의 일치, 삼각 부등식의 핵심(대응과 자세의 합성), ℓ → ∞ 에서 기본판.
-framespace_wip/tests_stage0/test_rulers.py 를 옮긴 것이다. numba 가 없으면 건너뛴다."""
+"""Tests of the ruler family (rulers): agreement of computation and definition, the core of the triangle inequality
+(composition of correspondences and poses), and the basic distance as ℓ → ∞.
+Moved from framespace_wip/tests_stage0/test_rulers.py of the framespace-paper repository. Skipped without numba."""
 import math
 
 import numpy as np
@@ -9,9 +10,9 @@ import torch
 import framespace as fs
 from framespace.geometry import random_rotations
 
-rulers = pytest.importorskip('framespace.rulers', reason='numba 가 필요하다 (pip install framespace[rulers])')
+rulers = pytest.importorskip('framespace.rulers', reason='numba is required (pip install framespace[rulers])')
 def backbone(n, seed):
-    """3.8 Å 걸음의 매끈한 Cα 사슬과 그 좌표 (n−1, 3, 3) (O 는 그럴듯한 쪽에 둔다)."""
+    """A smooth Cα chain with 3.8 Å steps and its coordinates (n−1, 3, 3) (O placed on a plausible side)."""
     rng = np.random.default_rng(seed)
     d = np.array([1.0, 0.0, 0.0])
     CA = [np.zeros(3)]
@@ -45,7 +46,7 @@ def random_pose(seed):
 
 
 def compose(M1, M2):
-    """대응 A–B 와 B–C 를 이어 A–C."""
+    """Composes the correspondences A–B and B–C into A–C."""
     return (M1.astype(int) @ M2.astype(int)) > 0
 
 
@@ -59,7 +60,7 @@ def test_tm_identity_and_self():
 
 
 def test_tm_composition_inequality():
-    """정리의 핵심: 임의의 대응·자세 (π₁, g₁), (π₂, g₂) 를 이은 (π₂∘π₁, g₁g₂) 의 비용 제곱근은 둘의 합 이하."""
+    """Core of the theorem: for any correspondences and poses (π₁, g₁), (π₂, g₂), the square-root cost of the composition (π₂∘π₁, g₁g₂) is at most the sum of the two."""
     rng = np.random.default_rng(0)
     for trial in range(200):
         A, B, C = (backbone(int(rng.integers(8, 20)), 10 * trial + k)[0] for k in range(3))
@@ -101,7 +102,7 @@ def test_wl_identity_self_and_limit():
 
 
 def test_optimized_triangle_small():
-    """작은 사슬 8 개의 최적화 값으로 삼각 부등식 (고정 d₀ 와 고정 ℓ). 계산값은 상계라 위반은 최적화 오차뿐이다."""
+    """Triangle inequality on the optimised values of 8 small chains (fixed d₀ and fixed ℓ). The computed values are upper bounds, so a violation can only be an optimisation error."""
     S = [backbone(int(n), 20 + k) for k, n in enumerate([14, 16, 18, 15, 20, 17, 13, 19])]
     N = len(S)
     Dt, Dw = np.zeros((N, N)), np.zeros((N, N))
@@ -114,9 +115,11 @@ def test_optimized_triangle_small():
 
 
 def test_linear_form_is_not_a_metric():
-    """제곱근을 뺀 꼴 D² = (n + m)/2 − S (Sippl 2008 의 L_a + L_b − 2S 에 S_TM 을 넣은 것의 절반)는 삼각 부등식을 어긴다.
-    a 의 10곳을 0.5 d₀ 옮긴 b, 같은 방향으로 두 배 옮긴 c: 짝마다 δ²(2r) > 2 δ²(r) (r² < 1/2) 라 선형 꼴은 깨지고 제곱근 꼴은 선다.
-    ab, bc 는 항등 대응의 비용(참값의 상계)을 써서 위반을 작게 잡는다. ac 는 최적화 값(상계)이라, 참 최적이 이보다 15% 넘게 낮지 않으면 위반이다."""
+    """The form without the square root, D² = (n + m)/2 − S (half of Sippl 2008's L_a + L_b − 2S with S_TM), violates the
+    triangle inequality. b moves 10 positions of a by 0.5 d₀ and c moves them twice as far in the same direction: for
+    each pair δ²(2r) > 2 δ²(r) (r² < 1/2), so the linear form breaks while the square-root form holds.
+    ab and bc use the cost of the identity correspondence (an upper bound of the true value), which understates the
+    violation. ac is an optimised value (an upper bound), so it is a violation unless the true optimum is more than 15% lower."""
     A, _ = backbone(60, 31)
     rng = np.random.default_rng(5)
     idx = np.linspace(3, 56, 10).round().astype(int)
@@ -142,7 +145,7 @@ def test_tm_forms_and_d0():
 
 
 def test_zero_padding_invariance():
-    """길이 n 의 공간은 더 긴 공간의 부분공간이다: 영 항을 덧붙이거나 끼워도 값이 같다(기본 판, D_{w,ℓ})."""
+    """The space of length n is a subspace of longer spaces: appending or inserting zero terms leaves the value unchanged (basic distance, D_{w,ℓ})."""
     _, x = backbone(30, 7)
     _, y = backbone(25, 8)
     rng = np.random.default_rng(3)
@@ -161,7 +164,7 @@ def test_zero_padding_invariance():
     keep_x, keep_y = (xz ** 2).sum((1, 2)) > 0, (yz ** 2).sum((1, 2)) > 0
     pz, qz = np.zeros((len(xz), 3)), np.zeros((len(yz), 3))
     pz[keep_x], qz[keep_y] = p, q
-    pz[~keep_x], qz[~keep_y] = 50.0, -50.0    # 영 항의 자리는 아무 데나: 값에 영향이 없어야 한다
+    pz[~keep_x], qz[~keep_y] = 50.0, -50.0    # positions of zero terms are arbitrary: they must not affect the value
     a = rulers.wl_align(x, y, ell=6.0, p=p, q=q)
     b = rulers.wl_align(xz, yz, ell=6.0, p=pz, q=qz)
     assert abs(a['D2'] - b['D2']) < 1e-8

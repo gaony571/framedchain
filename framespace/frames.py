@@ -1,19 +1,20 @@
-"""백본 원자 → 공간의 좌표 (SQFORM_SPACE.md 1.1–1.4절).
+"""Backbone atoms -> coordinates of the space.
 
-변 i 는 Cα_i → Cα_{i+1}. 프레임 R_i = [T, U, V] (열):
-  T = 변의 방향, U = 그 변에 걸친 펩타이드 결합의 C=O 방향에서 T 성분을 뺀 뒤 정규화한 것, V = T × U.
-좌표는 x_i = s_i · R_i / 2,  s_i = l_i / l0 (l_i 는 변의 길이, 기본 l0 = 3.83 Å). 노름² 은 0.75 s_i².
-첫 열에 2·l0 를 곱하면 변의 벡터가 되므로 좌표만으로 Cα 자리가 복원된다.
+Edge i is Cα_i → Cα_{i+1}. Its frame R_i = [T, U, V] (columns):
+  T = direction of the edge, U = C=O direction of the peptide bond across the edge with its T component removed and
+  normalised, V = T × U.
+Coordinates are x_i = s_i · R_i / 2, s_i = l_i / l0 (l_i is the edge length; default l0 = 3.83 Å). The squared norm is 0.75 s_i².
+The first column times 2·l0 is the edge vector, so the Cα positions are recovered from the coordinates alone.
 """
 import numpy as np
 
-L0 = 3.83        # 트랜스인 변의 평균 길이 (Å), 길이 비의 기준
-CIS_MAX = 3.45   # 이보다 짧은 변은 시스 (시스 약 3.09 Å, 트랜스 약 3.83 Å 사이가 비어 있다)
+L0 = 3.83        # mean length of a trans edge (Å), the reference for length ratios
+CIS_MAX = 3.45   # edges shorter than this are cis (cis about 3.09 Å, trans about 3.83 Å, nothing in between)
 CAPS = ('ACE', 'NME', 'NHE')
 
 
 def frames_from_backbone(CA, C, O):
-    """잔기마다의 Cα, C, O (..., L, 3) -> 프레임 R (..., L−1, 3, 3), 변 길이 l (..., L−1)."""
+    """Per-residue Cα, C, O (..., L, 3) -> frames R (..., L−1, 3, 3) and edge lengths l (..., L−1)."""
     CA, C, O = (np.asarray(a, dtype=np.float64) for a in (CA, C, O))
     e = CA[..., 1:, :] - CA[..., :-1, :]
     l = np.linalg.norm(e, axis=-1)
@@ -25,30 +26,30 @@ def frames_from_backbone(CA, C, O):
 
 
 def to_coordinates(R, l, l0=L0):
-    """프레임과 변 길이 -> 좌표 x_i = (l_i / l0) R_i / 2."""
+    """Frames and edge lengths -> coordinates x_i = (l_i / l0) R_i / 2."""
     return (np.asarray(l) / l0)[..., None, None] * np.asarray(R) / 2.0
 
 
 def coordinates_from_backbone(CA, C, O, l0=L0):
-    """잔기마다의 Cα, C, O (..., L, 3) -> 좌표 (..., L−1, 3, 3)."""
+    """Per-residue Cα, C, O (..., L, 3) -> coordinates (..., L−1, 3, 3)."""
     R, l = frames_from_backbone(CA, C, O)
     return to_coordinates(R, l, l0)
 
 
 def edge_lengths(x, l0=L0):
-    """좌표 -> 변의 길이 l_i = 2·l0·|첫 열|. 영 항은 0."""
+    """Coordinates -> edge lengths l_i = 2·l0·|first column|. Zero terms give 0."""
     return 2.0 * l0 * np.linalg.norm(np.asarray(x)[..., :, 0], axis=-1)
 
 
 def frames_of(x):
-    """실제 구조의 좌표 -> 프레임 R_i 와 길이 비 s_i (= 2·|첫 열|, l0 와 무관)."""
+    """Coordinates of a real structure -> frames R_i and length ratios s_i (= 2·|first column|, independent of l0)."""
     x = np.asarray(x)
     s = 2.0 * np.linalg.norm(x[..., :, 0], axis=-1)
     return 2.0 * x / s[..., None, None], s
 
 
 def is_real(x, tol=1e-3):
-    """항마다 s·R/2 꼴(s > 0, R 은 회전)인지. 영 항과 일반 행렬은 False."""
+    """Whether each term has the form s·R/2 (s > 0, R a rotation). Zero terms and general matrices give False."""
     x = np.asarray(x)
     s = 2.0 * np.linalg.norm(x[..., :, 0], axis=-1)
     with np.errstate(invalid='ignore', divide='ignore'):
@@ -58,26 +59,27 @@ def is_real(x, tol=1e-3):
 
 
 def is_cis(x, cis_max=CIS_MAX, l0=L0):
-    """변 길이가 cis_max 보다 짧은 (영이 아닌) 항."""
+    """(Non-zero) terms whose edge length is shorter than cis_max."""
     l = edge_lengths(x, l0)
     return (l > 0) & (l < cis_max)
 
 
 def n_edges(x, eps=1e-12):
-    """영이 아닌 항의 수 (점 하나 (n, 3, 3) 이 속한 층). 노름² 이 eps 이하인 항을 영으로 본다."""
+    """Number of non-zero terms (the stratum of a point (n, 3, 3)). Terms with squared norm ≤ eps count as zero."""
     return int(((np.asarray(x) ** 2).sum((-1, -2)) > eps).sum())
 
 
 def ca_trace(x, l0=L0):
-    """좌표 (..., n, 3, 3) -> Cα (..., n+1, 3). 첫 Cα 는 원점. 영 항은 길이 0 인 변이다."""
+    """Coordinates (..., n, 3, 3) -> Cα (..., n+1, 3), first Cα at the origin. A zero term is an edge of length 0."""
     e = 2.0 * l0 * np.asarray(x)[..., :, :, 0]
     z = np.zeros(e.shape[:-2] + (1, 3))
     return np.concatenate([z, np.cumsum(e, -2)], -2)
 
 
 def read_pdb_backbone(path, caps=CAPS):
-    """PDB (여러 MODEL 가능) -> dict(N, CA, C, O: (F, L, 3), resnames). 네 원자가 모두 있는 잔기만 남기고, caps 에 든 잔기(끝 캡)는 뺀다.
-    altLoc 이 여럿이면 처음 나온 것을 쓴다. 잔기는 파일 순서대로 잇고 사슬이 끊긴 곳은 따로 확인하지 않는다(긴 변으로 나타난다)."""
+    """PDB (several MODELs allowed) -> dict(N, CA, C, O: (F, L, 3), resnames). Keeps residues with all four atoms and
+    drops the residues in caps (terminal caps). For several altLocs the first one is used. Residues are joined in file
+    order; chain breaks are not checked (they appear as long edges)."""
     models, cur, order, names = [], {}, [], {}
     with open(path) as f:
         for line in f:
@@ -105,6 +107,6 @@ def read_pdb_backbone(path, caps=CAPS):
 
 
 def coordinates_from_pdb(path, l0=L0, caps=CAPS):
-    """PDB -> 좌표 (F, L−1, 3, 3)."""
+    """PDB -> coordinates (F, L−1, 3, 3)."""
     b = read_pdb_backbone(path, caps)
     return coordinates_from_backbone(b['CA'], b['C'], b['O'], l0)

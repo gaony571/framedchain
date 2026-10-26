@@ -1,13 +1,14 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "framespace"
-version = "0.3.1"
+version = "0.3.2"
 description = "Frame-sequence space for protein backbones: one coordinate system and one proven metric for structures of any length"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Hyeonsu An"}]
 requires-python = ">=3.9"
 dependencies = ["numpy", "torch", "scipy"]
