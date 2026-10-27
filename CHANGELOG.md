@@ -2,13 +2,17 @@
 
 framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use the old name.
 
+## 0.4.1 (2026-10-28)
+
+- Documentation only: the paper's title, *Comparing protein conformational ensembles across sequences and lengths* (in preparation), and its
+  terms (shared-bond and unshared-bond parts) in the README, README.ko and CITATION.cff. No code change.
+
 ## 0.4.0 (2026-10-26)
 
 - Renamed from framespace to framedchain: distribution name, import name (`import framedchain as fc`) and repository
   (github.com/gaony571/framedchain; GitHub redirects the old address). `import framespace` no longer works. No
   computation changed (the 46 tests and the quick-start output are identical).
-- Descriptions follow the paper (in preparation):
-  *Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length*.
+- Descriptions follow the paper's abstract.
 
 ## 0.3.3 (2026-10-26)
 

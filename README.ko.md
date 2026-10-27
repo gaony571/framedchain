@@ -2,7 +2,7 @@
 
 (English: `README.md`. 이 파일은 한국어 판이다.)
 
-논문 *Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length* (준비 중)의 패키지다. 0.3.3 까지는 이름이 framespace 였다(계산은 같다; `CHANGELOG.md`).
+논문 *Comparing protein conformational ensembles across sequences and lengths* (준비 중)의 패키지다. 0.3.3 까지는 이름이 framespace 였다(계산은 같다; `CHANGELOG.md`).
 
 길이가 다른 단백질 구조와 앙상블을 한 거리 공간에 두는 틀 사슬(framed chain). 이 패키지에는 이 공간의 **확정된 정의와 성질**, 그리고 **논문에서 고정해 실제로 쓴 계산과 추정**(줄인 계산, 에너지 통계, 공유 변 퍼짐 윤곽, 짝·빈칸 분해, 자의 묶음 D_{w,ℓ}·D_TM)을 둔다. 사전 등록한 판정 규칙, 통계 검정(부트스트랩·편 순위 상관 등), 자료 읽기(mdCATH·ATLAS), 아직 고정하지 않은 연구 단계의 것(바닥값 편향 맞춤, 평균·퍼짐 분해, 확률 대응, 바리센터)은 넣지 않는다.
 
@@ -55,7 +55,7 @@ pip install -e .[test]    # pytest
 pip install -e .[rulers]  # 자의 묶음 D_{w,ℓ}·D_TM (numba)
 ```
 
-PyPI 에는 없다. 저장소에서 바로 설치하려면 `pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.0"`.
+PyPI 에는 없다. 저장소에서 바로 설치하려면 `pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.1"`.
 Python 3.12 (numpy 2.5, torch 2.14, scipy 1.18, numba 0.68) 에서 시험했다. 빠른 시작은 `python examples/quickstart.py`
 (입력 파일 없음, 기대 출력 `examples/quickstart_output.txt`), 함수 목록은 `docs/API.md`, 바뀐 것은 `CHANGELOG.md`.
 계산 시간·메모리(예: 노트북 CPU 에서 200 × 210 변 쌍 128 출발 22 초, 32 출발 6.4 초)와 재현성 안내는 영문 README 의

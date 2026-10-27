@@ -2,13 +2,15 @@
 
 Framed chains: a metric space for protein structures and ensembles of any length. (Korean version: `README.ko.md`.)
 
-Each virtual bond between consecutive α-carbons is represented by its peptide-plane frame scaled by bond length, and an
-absent bond is the zero matrix, so backbones of any length lie in one space. An order-preserving edit distance modulo
-global rotation is a proven metric on these chains; it splits exactly into matched and unmatched shares, and alignments
-can be certified globally optimal by branch-and-bound. For ensembles, an energy-distance statistic is unbiased for any
-underlying metric.
+Each virtual Cα–Cα bond becomes a 3×3 matrix, the orthonormal frame of the bond and its peptide plane scaled by bond
+length; an absent bond is the zero matrix, so backbones of any length lie in one space. Minimizing the Euclidean
+distance between chains over global rotations and insertions of absent bonds gives an order-preserving edit-distance
+metric across lengths; at an optimal alignment, which can be certified by branch-and-bound, its square splits exactly
+into shared-bond and unshared-bond parts. For ensembles, energy statistics corrected for replicate noise are unbiased
+under any underlying metric, and once correspondence and rotation are fixed the space is Euclidean, so mean shifts and
+fluctuations can be compared bond by bond.
 
-The package accompanies the paper *Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length* (in preparation). It was called framespace up to version 0.3.3 (same
+The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (in preparation). It was called framespace up to version 0.3.3 (same
 computations; see `CHANGELOG.md`).
 
 This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (in preparation; reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-registered decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycentres) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
@@ -29,7 +31,7 @@ This package contains (i) the definitions and proven properties of the space, an
 - **PDB reader.** Residues with N, Cα, C and O; multiple MODELs as a batch; terminal caps (ACE, NME, NHE) removed; first altLoc; chain breaks are not checked (they appear as long edges).
 
 Fixed in the paper (0.3.x):
-- **Matched and gap parts** (`parts`). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalised distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
+- **Matched and gap parts** (`parts`; the shared-bond and unshared-bond parts of the paper). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalised distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
 - **Near-optimal correspondences** (`parts.near_optimal_alignments`). Correspondences of all starts with S ≥ (1 − ε) S_max (ε = 0.005), the number of distinct ones, and their intersection (the joint gate of the paper's P3 and confirmation C analyses).
 - **Reduced computation** (`reduced`). The two ensemble mean points are aligned with 128 starts (rotation U0, correspondence π̄); each sample pair then starts from one rotation R_kᵀ U0 R′_l and the correspondence is restricted to a band around π̄ (half-width 5, doubled only for pairs touching the band edge). The banded DP equals the full DP with out-of-band pairs blocked; values are upper bounds. The edge rule is a check, not a guarantee (accuracy was measured against branch-and-bound).
 - **Energy statistics** (`ensemble`). From mean distances between independent runs — C (cross) and B_P, B_Q (between different runs of the same side): Δ² = 2C − B_P − B_Q, w̄ = (B_P + B_Q)/2, ratio = √((C/w̄)² − 1), main statistic Δ²/√n̄, exponent-2 version Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2)/n_edges. By the bilinear identity Δ² is unbiased whatever the negative type of the ground distance. Estimation is an incomplete U-statistic with 2,000 frame pairs per run pair. Also: the negative-type diagnostic η₊ (positive spectral mass of J D J), the component ratio, the regime boundary, and the aligned-coordinate (Euclidean, fixed correspondence) version `aligned_energy_stats`.
@@ -61,8 +63,8 @@ If you change `l0`, pass the same value when building coordinates and when readi
 framedchain is not on PyPI. Install it from the GitHub repository (a tagged version keeps results reproducible):
 
 ```
-pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.0"
-pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.0"   # with the extras
+pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.1"
+pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.1"   # with the extras
 ```
 
 or from a clone: `pip install -e .` (extras: `.[ot]` weighted transport with POT, otherwise scipy LP; `.[rulers]`

@@ -1,7 +1,7 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below and the accompanying paper, \"Beyond aligned residues: A metric space of framed chains for protein structures and ensembles of any length\" (in preparation)."
+message: "If you use this software, please cite it as below and the accompanying paper, \"Comparing protein conformational ensembles across sequences and lengths\" (in preparation)."
 title: "framedchain: framed chains for protein structures and ensembles of any length"
-version: 0.4.0
+version: 0.4.1
 license: MIT
 type: software
 authors:

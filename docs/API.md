@@ -1,4 +1,4 @@
-# framedchain 0.4.0 — API reference
+# framedchain 0.4.1 — API reference
 
 Generated from the docstrings by `tools/make_api_doc.py`. Every name listed here except the `rulers` module is
 importable from the top level (`import framedchain as fc; fc.distance(...)`); `rulers` needs numba and is
