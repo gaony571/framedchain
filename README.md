@@ -190,6 +190,8 @@ The paper's analyses ran on framespace 0.2.0 (this package under its earlier nam
 
 Frame-pair sampling order differs between scripts (seeds derived from domain names), so exact paper values are reproduced with the as-run scripts.
 
+On the same synthetic inputs (fixed seeds, CPU, float64), version 0.4.1 gives exactly the values of the as-run code — distances, alignments, certificates, mean points, ensemble W₂, the reduced computation and the energy statistics (zero difference; check of 2026-10-28, script `code/r44_repro.py` in framedchain-paper, run with checkouts of both repositories side by side).
+
 ## Licence and citation
 
 MIT licence, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper and this software (`CITATION.cff`).
