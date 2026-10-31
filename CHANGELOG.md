@@ -2,6 +2,13 @@
 
 framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use the old name.
 
+## Repository history (2026-10-31)
+
+- The commit messages, written in Korean until 2026-10-29, were translated into English by rewriting the history.
+  No file, author or date changed (each commit keeps its file tree hash, and the tags keep their messages and dates),
+  but every commit identifier changed again. Tag `v0.2.0` is now commit `5e4fdf9` (`866995c` from 2026-10-26, `efcdd42`
+  before; file tree `6db30c0` throughout). The full map is in `docs/PROVENANCE.md` of the framedchain-paper repository.
+
 ## 0.4.1 (2026-10-28)
 
 - Documentation only: the paper's title, *Comparing protein conformational ensembles across sequences and lengths* (in preparation), and its
@@ -25,7 +32,7 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
   reproducibility notes in the README.
 - Repository history: on 2026-10-26 the author name in the history was unified and trailer lines were removed
   from the commit messages. This changed every commit identifier but no file or date (each commit keeps its file
-  tree hash). Tag `v0.2.0` is now commit `866995c` (formerly `efcdd42`; file tree `6db30c0` in both). The full map is in `docs/PROVENANCE.md` of the
+  tree hash). Tag `v0.2.0` became commit `866995c` (formerly `efcdd42`; file tree `6db30c0` in both; see the note of 2026-10-31 for the current identifier). The full map is in `docs/PROVENANCE.md` of the
   framedchain-paper repository.
 
 ## 0.3.2 (2026-10-26)
@@ -47,4 +54,4 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 ## 0.2.0 (2026-10-16)
 
 - Ensemble W₂ by exact optimal transport (`transport`). This is the version used in the paper's runs (tag `v0.2.0`,
-  commit `866995c`).
+  commit `5e4fdf9`).
