@@ -8,6 +8,7 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
   No file, author or date changed (each commit keeps its file tree hash, and the tags keep their messages and dates),
   but every commit identifier changed again. Tag `v0.2.0` is now commit `5e4fdf9` (`866995c` from 2026-10-26, `efcdd42`
   before; file tree `6db30c0` throughout). The full map is in `docs/PROVENANCE.md` of the framedchain-paper repository.
+- The Korean translation of the README (`README.ko.md`) was removed; the README is in English only.
 
 ## 0.4.1 (2026-10-28)
 

@@ -1,6 +1,6 @@
 # framedchain
 
-Framed chains: a metric space for protein structures and ensembles of any length. (Korean version: `README.ko.md`.)
+Framed chains: a metric space for protein structures and ensembles of any length.
 
 Each virtual Cα–Cα bond becomes a 3×3 matrix, the orthonormal frame of the bond and its peptide plane scaled by bond
 length; an absent bond is the zero matrix, so backbones of any length lie in one space. Minimizing the Euclidean
