@@ -10,10 +10,10 @@ into shared-bond and unshared-bond parts. For ensembles, energy statistics corre
 under any underlying metric, and once correspondence and rotation are fixed the space is Euclidean, so mean shifts and
 fluctuations can be compared bond by bond.
 
-The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (in preparation). It was called framespace up to version 0.3.3 (same
+The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (submitted). It was called framespace up to version 0.3.3 (same
 computations; see `CHANGELOG.md`).
 
-This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (in preparation; reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-registered decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycentres) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
+This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-registered decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycentres) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
 
 ## What is in the space
 
