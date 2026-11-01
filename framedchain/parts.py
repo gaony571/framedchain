@@ -53,8 +53,8 @@ def normalized_distance(x, y, d=None, **kw):
 
 
 def near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, improve_tol=1e-7):
-    """Nearly optimal correspondences and their intersection (the joint gate of experiments 1b and 1c of the paper, and
-    the alignment uncertainty of its first session).
+    """Nearly optimal correspondences and their intersection (in the paper, the joint gate of the primary and
+    confirmatory sequence-identity tests and the alignment-uncertainty check of S2 Text).
     Runs the same computation as align (identity + n_random random starts, alternating correspondence and rotation) on
     one pair x (n, 3, 3), y (m, 3, 3), and collects the starts whose final score satisfies S ≥ (1 − eps) S_max as
     "nearly optimal".

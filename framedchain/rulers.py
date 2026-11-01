@@ -27,7 +27,7 @@ superposition of TM-align), gapless threading, (search) superpositions of sub-fr
 (the search of the TM-score program), and poses given from outside (e.g. the TM-align pose).
 The computed value is an upper bound on D; there is no certificate (branch and bound). The inner loops run in numba
 (pip install framedchain[rulers]). This module is the same computation as framespace_wip/stage0/rulers.py used for the
-paper (the re-implementation of TM-align in the conventional column, the timing table).
+paper (the comparisons of TM-score forms, the chaining test and the ranking of existing measures).
 """
 import math
 
@@ -332,7 +332,8 @@ def wl_cost(x, y, match, U, t, ell, w=1.0, p=None, q=None):
 
 # Factorial design of the TM forms: (fixed d₀ / d₀(L)) × (no division / division by L̄ = (n + m)/2) × (square-root distance form / 1 − S form).
 def tm_forms(S, n, m):
-    """S_TM (computed at the given d₀) -> the four forms. Only 'sqrt_raw' is a metric by the theorem (at fixed d₀)."""
+    """S_TM (computed at the given d₀) -> the four forms. At fixed d₀, 'sqrt_raw' (D_TM) and 'sqrt_norm' (D_TM/√L̄) are
+    metrics (the theorem and the normalized metric of the paper); the linear forms 'lin_raw' and 'lin_norm' are not."""
     Lb = 0.5 * (n + m)
     D2 = max(0.0, Lb - S)
     return {'sqrt_raw': math.sqrt(D2), 'lin_raw': D2, 'sqrt_norm': math.sqrt(D2 / Lb), 'lin_norm': 1.0 - S / Lb}

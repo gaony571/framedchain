@@ -7,6 +7,10 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 - American spelling in two more docstrings ("majorization" in `rulers`, "replicates" in `ensemble`) and
   `docs/API.md` regenerated; the README no longer says the companion repository is to be made public with the paper
   (both repositories become public before the paper is submitted); this file lists sections newest first. No code changed.
+- Docstring corrections, with `docs/API.md` regenerated: `rulers.tm_forms` names both square-root forms (D_TM and
+  D_TM/√L̄) as metrics at fixed d₀; the `reduced` module and the README give the initial band half-width of 20 used for
+  the pairs of the comparison across sequences with TM-score below 0.3; `Alignment` has a docstring; the names of the
+  paper's analyses in `parts`, `ensemble`, `rulers` and the README follow the paper. No code changed.
 
 ## 0.4.2 (2026-11-01)
 

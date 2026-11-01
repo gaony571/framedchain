@@ -130,10 +130,10 @@ def project_to_real(m, s=None, degen_frac=0.5):
     decomposition (the nearest rotation).
     Without s, the length ratio of the nearest point s_i = 2⟨R̄_i, m_i⟩/3 is used (Frobenius projection; the
     "projection of the mean point" of the coordinate round-trip check); with s, that length ratio is used (for example
-    the mean ensemble length ratio 2‖E[..., 0]‖; the projected mean point of primary P3).
+    the mean ensemble length ratio 2‖E[..., 0]‖; the projected mean points of the paper's sequence-identity analyses).
     Returns (P (n, 3, 3), degenerate (n,) bool). degenerate = third singular value < degen_frac × s/2
-    (the direction of that edge is widely spread in the ensemble and the projection is unstable; primary P3 removed
-    such edges from both the control and the response)."""
+    (the direction of that edge is widely spread in the ensemble and the projection is unstable; the paper's
+    sequence-identity analyses removed such edges from the shared bonds, so from both the structural control and r_dyn)."""
     m = np.asarray(m, np.float64)
     U, S, Vt = np.linalg.svd(m)
     dt = np.sign(np.linalg.det(U @ Vt))
@@ -179,7 +179,8 @@ def aligned_energy_stats(P, Q, n_edges):
     align_to_reference and flattened). All run pairs, all frame pairs within each run pair.
     Returns the energy_stats dict + a_P, a_Q (within-run mean distances), dmu (mean shift between run means per edge:
     cross − mean floor), logspread (log of the total-spread ratio of Q to P). The same computation as compare in
-    code/r38_compare.py of the framedchain-paper repository (aligned-coordinate versions of round37 and P2)."""
+    code/r38_compare.py of the framedchain-paper repository (the aligned-coordinate statistics of the paper's
+    model-error comparison and of the heating cells of the same domains)."""
     P = [np.asarray(a, np.float64) for a in P]
     Q = [np.asarray(b, np.float64) for b in Q]
 

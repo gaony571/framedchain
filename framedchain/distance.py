@@ -30,6 +30,7 @@ def dp_score(K):
 
 @dataclass
 class Alignment:
+    """Result of align: score S (P,), rotation U (P, 3, 3) applied to y, and matches (P, n, m) bool."""
     score: torch.Tensor      # (P,) S
     rotation: torch.Tensor   # (P, 3, 3) rotation U applied to y
     match: torch.Tensor      # (P, n, m) bool

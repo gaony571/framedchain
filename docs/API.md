@@ -91,7 +91,7 @@ F[i, j] = max(F[i−1, j], F[i, j−1], F[i−1, j−1] + K[i, j]). The autograd
 
 ### `Alignment(score: torch.Tensor, rotation: torch.Tensor, match: torch.Tensor) -> None`
 
-Alignment(score: torch.Tensor, rotation: torch.Tensor, match: torch.Tensor)
+Result of align: score S (P,), rotation U (P, 3, 3) applied to y, and matches (P, n, m) bool.
 
 ### `as_tensor(x, device=None, dtype=None)`
 
@@ -277,8 +277,8 @@ Mean-normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Withou
 
 ### `near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, improve_tol=1e-07)`
 
-Nearly optimal correspondences and their intersection (the joint gate of experiments 1b and 1c of the paper, and
-the alignment uncertainty of its first session).
+Nearly optimal correspondences and their intersection (in the paper, the joint gate of the primary and
+confirmatory sequence-identity tests and the alignment-uncertainty check of S2 Text).
 Runs the same computation as align (identity + n_random random starts, alternating correspondence and rotation) on
 one pair x (n, 3, 3), y (m, 3, 3), and collects the starts whose final score satisfies S ≥ (1 − eps) S_max as
 "nearly optimal".
@@ -309,9 +309,10 @@ mean points generously (many starts) gives a rotation U0 and a correspondence π
 sample k to its own mean computed in advance, the start rotation of the pair (k, l) is R_k^T U0 R'_l.
 
 Every ensemble computation of the paper follows this rule: 128 starts between the mean points, one start per sample
-pair, band half-width 5 at first and doubled (up to the number of columns) only for pairs touching the band edge,
-float64. The functions here are the same computation as the code that ran (framespace_wip/stage0/band.py and
-red_pairs in code/r38_s0.py of the framedchain-paper repository).
+pair, band half-width 5 at first (20 for the pairs of the comparison across sequences with TM-score below 0.3, the
+setting chosen by the paper's pre-specified rule after its bias check) and doubled (up to the number of columns) only
+for pairs touching the band edge, float64. The functions here are the same computation as the code that ran
+(framespace_wip/stage0/band.py and red_pairs in code/r38_s0.py of the framedchain-paper repository).
 
 ### `center_path(match, m)` *(tensor)*
 
@@ -433,10 +434,10 @@ Projects the terms of a mean point m (n, 3, 3) onto real terms s·R/2. R̄_i is 
 decomposition (the nearest rotation).
 Without s, the length ratio of the nearest point s_i = 2⟨R̄_i, m_i⟩/3 is used (Frobenius projection; the
 "projection of the mean point" of the coordinate round-trip check); with s, that length ratio is used (for example
-the mean ensemble length ratio 2‖E[..., 0]‖; the projected mean point of primary P3).
+the mean ensemble length ratio 2‖E[..., 0]‖; the projected mean points of the paper's sequence-identity analyses).
 Returns (P (n, 3, 3), degenerate (n,) bool). degenerate = third singular value < degen_frac × s/2
-(the direction of that edge is widely spread in the ensemble and the projection is unstable; primary P3 removed
-such edges from both the control and the response).
+(the direction of that edge is widely spread in the ensemble and the projection is unstable; the paper's
+sequence-identity analyses removed such edges from the shared bonds, so from both the structural control and r_dyn).
 
 ### `edge_spread_profile(F, idx, iters=3)`
 
@@ -457,7 +458,8 @@ One cell in aligned (Euclidean) coordinates (same sequence, fixed correspondence
 align_to_reference and flattened). All run pairs, all frame pairs within each run pair.
 Returns the energy_stats dict + a_P, a_Q (within-run mean distances), dmu (mean shift between run means per edge:
 cross − mean floor), logspread (log of the total-spread ratio of Q to P). The same computation as compare in
-code/r38_compare.py of the framedchain-paper repository (aligned-coordinate versions of round37 and P2).
+code/r38_compare.py of the framedchain-paper repository (the aligned-coordinate statistics of the paper's
+model-error comparison and of the heating cells of the same domains).
 
 ## `geometry`
 
@@ -534,7 +536,7 @@ superposition of TM-align), gapless threading, (search) superpositions of sub-fr
 (the search of the TM-score program), and poses given from outside (e.g. the TM-align pose).
 The computed value is an upper bound on D; there is no certificate (branch and bound). The inner loops run in numba
 (pip install framedchain[rulers]). This module is the same computation as framespace_wip/stage0/rulers.py used for the
-paper (the re-implementation of TM-align in the conventional column, the timing table).
+paper (the comparisons of TM-score forms, the chaining test and the ranking of existing measures).
 
 ### `edge_positions(x)`
 
@@ -576,7 +578,8 @@ D_{w,ℓ}² at a given correspondence and pose (by definition).
 
 ### `tm_forms(S, n, m)`
 
-S_TM (computed at the given d₀) -> the four forms. Only 'sqrt_raw' is a metric by the theorem (at fixed d₀).
+S_TM (computed at the given d₀) -> the four forms. At fixed d₀, 'sqrt_raw' (D_TM) and 'sqrt_norm' (D_TM/√L̄) are
+metrics (the theorem and the normalized metric of the paper); the linear forms 'lin_raw' and 'lin_norm' are not.
 
 ### `triangle_rate(Dm, rel_tol=1e-09, abs_tol=1e-09, max_triples=None, seed=0)`
 
