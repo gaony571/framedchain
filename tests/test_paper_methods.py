@@ -181,7 +181,7 @@ def test_project_to_real():
     assert np.allclose(np.linalg.norm(P3[:, :, 0], axis=-1) * 2, s)
 
 
-# ---------- matched/gap split and mean normalization ----------
+# ---------- matched/gap split and normalized distance D̂ ----------
 
 def test_split_sq_distance():
     a = chain(20, 51)

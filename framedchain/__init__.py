@@ -6,9 +6,9 @@ A point is a finite sequence of 3×3 matrices; the terms of a real structure are
 edge i, s_i = l_i / 3.83 Å). Inserting or removing zero matrices, or multiplying every term on the left by the same
 rotation, gives the same point. The distance is the minimum over order-preserving partial correspondences and rotations.
 An ensemble is a distribution on this metric space; W₂ between ensembles is computed by definition (transport). The
-paper's main statistic is the energy statistic Δ²/√n̄ (ensemble). The reduced computation (reduced) and the ruler
-family D_{w,ℓ}, D_TM (rulers, needs numba; `from framedchain import rulers`) are the same computations as the code that
-produced the paper.
+paper's main statistic is the energy statistic Δ²/√n̄ (ensemble). The reduced computation (reduced) and the distance
+D_TM of the TM-align objective (rulers, needs numba; `from framedchain import rulers`; the module also holds D_{w,ℓ},
+which the paper does not use) are the same computations as the code that produced the paper.
 """
 from .geometry import hat, expmap, procrustes, polar, quat_to_mat, mat_to_quat, quat_mul, quat_conj, rotvec_to_quat, random_rotations
 from .frames import L0, CIS_MAX, BREAK_MIN, CAPS, frames_from_backbone, to_coordinates, coordinates_from_backbone, edge_lengths, frames_of, is_real, is_cis, is_break, n_edges, ca_trace, read_pdb_backbone, coordinates_from_pdb

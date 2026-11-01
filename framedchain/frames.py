@@ -9,7 +9,7 @@ The first column times 2·l0 is the edge vector, so the Cα positions are recove
 import numpy as np
 
 L0 = 3.83        # mean length of a trans edge (Å), the reference for length ratios
-CIS_MAX = 3.45   # edges shorter than this are cis (cis about 3.09 Å, trans about 3.83 Å, nothing in between)
+CIS_MAX = 3.45   # edges shorter than this are cis (trans about 3.83 Å; cis edges are clearly shorter)
 BREAK_MIN = 4.2  # edges longer than this span a chain break (the criterion of the paper's chain-break check)
 CAPS = ('ACE', 'NME', 'NHE')
 
@@ -66,8 +66,8 @@ def is_cis(x, cis_max=CIS_MAX, l0=L0):
 
 
 def is_break(x, break_min=BREAK_MIN, l0=L0):
-    """Terms whose edge length exceeds break_min (4.2 Å by default). Consecutive Cα are about 3.8 Å (trans) or 3.1 Å (cis)
-    apart, so a longer edge joins residues on either side of a gap in the chain."""
+    """Terms whose edge length exceeds break_min (4.2 Å by default). Consecutive Cα are about 3.8 Å apart (less across a cis
+    peptide), so a longer edge joins residues on either side of a gap in the chain."""
     return edge_lengths(x, l0) > break_min
 
 

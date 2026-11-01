@@ -50,8 +50,8 @@ Whether each term has the form s·R/2 (s > 0, R a rotation). Zero terms and gene
 
 ### `is_break(x, break_min=4.2, l0=3.83)`
 
-Terms whose edge length exceeds break_min (4.2 Å by default). Consecutive Cα are about 3.8 Å (trans) or 3.1 Å (cis)
-apart, so a longer edge joins residues on either side of a gap in the chain.
+Terms whose edge length exceeds break_min (4.2 Å by default). Consecutive Cα are about 3.8 Å apart (less across a cis
+peptide), so a longer edge joins residues on either side of a gap in the chain.
 
 ### `n_edges(x, eps=1e-12)`
 
@@ -261,7 +261,7 @@ alignment breaks such a match: the gap part contains not only insertions and del
 in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
 The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
-Mean normalization. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
+Normalized distance. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
 unit sphere of a Hilbert space).
 
 ### `split_sq_distance(x, y, alignment=None, **kw)`
@@ -273,12 +273,13 @@ Returns dict: d2, matched (matched part), gap (gap part), n_matched (number of m
 
 ### `normalized_distance(x, y, d=None, **kw)`
 
-Mean-normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound).
+Normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound).
 
 ### `near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, improve_tol=1e-07)`
 
-Nearly optimal correspondences and their intersection (in the paper, the joint gate of the primary and
-confirmatory sequence-identity tests and the alignment-uncertainty check of S2 Text).
+Nearly optimal correspondences and their intersection (in the paper, the intersection of near-optimal
+alignments in the decision rules of the primary and confirmatory sequence-identity tests, and the
+alignment-uncertainty check of S2 Text).
 Runs the same computation as align (identity + n_random random starts, alternating correspondence and rotation) on
 one pair x (n, 3, 3), y (m, 3, 3), and collects the starts whose final score satisfies S ≥ (1 − eps) S_max as
 "nearly optimal".
@@ -367,11 +368,13 @@ For runs (independent replicates) P_1..P_r and Q_1..Q_s, C = mean distance over 
 distance over pairs of different runs on the same side.
     Δ² = 2C − B_P − B_Q  (= cross energy distance − (floor_P + floor_Q)/2; within-run mean distances cancel)
 Because the energy distance is a symmetric bilinear form in the difference of measures, Δ² is an unbiased estimator of
-the energy distance between the central distributions when runs are independent, whatever the negative type of the
-ground distance (D is not of negative type). What is lost is only the guarantee ℰ_D ≥ 0; on real samples this is
-diagnosed by the positive-eigenvalue fraction η₊ of J D J (eta_plus).
+its population counterpart, defined by the expected frame distribution of one run on each side, when runs are
+independent and identically distributed, whatever the negative type of the ground distance (D is not of negative
+type). What is lost is only the guarantee ℰ_D ≥ 0; on real samples this is diagnosed by the positive-eigenvalue
+fraction η₊ of J D J (eta_plus).
     w̄ = (B_P + B_Q)/2,  ratio = √((C/w̄)² − 1) = √((Δ²/(2w̄) + 1)² − 1)  (the signal-to-noise that follows exactly from cross ÷ within distances)
-ratio = 1 separates the near and far regimes (Δ²/√n = 2(√2 − 1) w̄/√n). The main statistic is Δ²/√n̄.
+ratio = 1 lies between the near and far limits, inside the crossing band of the paper (near: ratio < 0.5; crossing:
+0.5–2; far: ratio > 2); there Δ²/√n = 2(√2 − 1) w̄/√n. The main statistic is Δ²/√n̄.
     Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2) / number of edges   (C₂, B₂ are means of squared distances; exponent-2 energy statistic, mean shift)
 In aligned (Euclidean) coordinates Δμ²₂ equals the mean shift between run means exactly (the spread terms cancel);
 over D it is the generalization.
@@ -400,7 +403,7 @@ single-branch assumption hold for that cell.
 
 ### `regime_boundary(wbar, n_edges)`
 
-Δ²/√n at the boundary of the two regimes (ratio = 1): 2(√2 − 1) w̄/√n.
+Δ²/√n at ratio = 1, between the near and far limits (inside the paper's crossing band 0.5–2): 2(√2 − 1) w̄/√n.
 
 ### `frame_pairs(a, b, n_per_run, k=2000, rng=None)`
 
@@ -449,7 +452,7 @@ shared edges for `iters` rounds, then the mean squared scatter around the mean p
 
 Dynamics similarity r_dyn of two protein ensembles on shared edges: Spearman rank correlation of the spread
 profiles on the paired shared edges pairs (k, 2). Shared edges are the matches of the optimal alignment between the
-two mean points (π̄). Ties are not split in the ranks.
+two mean points (π̄). Tied values receive distinct ranks in sort order (no average ranks), as in the paper's code.
 
 ### `aligned_energy_stats(P, Q, n_edges)`
 
@@ -507,12 +510,15 @@ n uniformly random rotations. Random numbers are drawn on the CPU and moved to d
 
 ## `rulers`
 
-The ruler family: D_{w,ℓ} with a position term, and the TM-form distance D_TM at fixed d₀.
+The rulers module: the distance D_TM at fixed d₀ (the TM-align objective as an edit-distance metric, Theorem 2 of
+the paper) and D_{w,ℓ} (frame terms with a position term; not used in the paper).
 
-Common frame (the general lemma of the paper). If the features of terms a and the distance δ between them are
-invariant under the rigid motions G, the gap cost c is G-invariant, and c(a) ≤ δ(a, b) + c(b), then
+The general lemma of the paper. If the features of terms a and the distance δ between them are invariant under the
+rigid motions G, the gap cost c is G-invariant, and c(a) ≤ δ(a, b) + c(b), then
     D² = min over (order-preserving partial correspondence π, g ∈ G) of Σ_{(i,j)∈π} δ(a_i, g b_j)² + Σ_{unmatched} c²
-is a metric on the quotient (identifying insertion/removal of zero-cost terms and a common g).
+is a pseudometric on the quotient (identifying insertion/removal of zero-cost terms and a common g); it is a metric
+when, in addition, the gap cost vanishes only at the zero term and the minimum over G is attained (for D_TM the
+minimum over translations is attained because the score vanishes at infinite separation).
 
 D_{w,ℓ}. Feature of edge i: (w·x_i, p_i/ℓ) (x_i = s_i R_i/2, p_i the midpoint of the edge); δ is their Euclidean
 distance and c = w‖x‖.
@@ -524,7 +530,7 @@ f(0) = 0, hence a metric); c² = 1/2.
     1 − δ² = 1/(1 + r²) is the TM residue score, so D_TM² = (n + m)/2 − S_TM,  S_TM = max Σ_{(i,j)∈π} 1/(1 + r_ij²).
   At fixed d₀ it is a metric (the objective of TM-align = D_TM at fixed d₀). TM-score adds d₀ = d₀(L), division by a
   length and the 1 − S transform; the non-metric behavior of 1 − TM comes from the shorter-length normalization and the
-  1 − S transform (the TM factorial design of the paper).
+  1 − S transform (the factorial comparison of the paper).
 
 Computation. For a fixed pose (U, t) the correspondence is exact by dynamic programming. For a fixed correspondence
   D_{w,ℓ}: t is the difference of the centroids of the matched midpoints and U is exact from the SVD of the combined

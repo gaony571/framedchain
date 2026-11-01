@@ -7,7 +7,7 @@ alignment breaks such a match: the gap part contains not only insertions and del
 in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
 The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
-Mean normalization. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
+Normalized distance. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
 unit sphere of a Hilbert space).
 """
 import numpy as np
@@ -43,7 +43,7 @@ def split_sq_distance(x, y, alignment=None, **kw):
 
 
 def normalized_distance(x, y, d=None, **kw):
-    """Mean-normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound)."""
+    """Normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound)."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)
     if d is None:
@@ -53,8 +53,9 @@ def normalized_distance(x, y, d=None, **kw):
 
 
 def near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, improve_tol=1e-7):
-    """Nearly optimal correspondences and their intersection (in the paper, the joint gate of the primary and
-    confirmatory sequence-identity tests and the alignment-uncertainty check of S2 Text).
+    """Nearly optimal correspondences and their intersection (in the paper, the intersection of near-optimal
+    alignments in the decision rules of the primary and confirmatory sequence-identity tests, and the
+    alignment-uncertainty check of S2 Text).
     Runs the same computation as align (identity + n_random random starts, alternating correspondence and rotation) on
     one pair x (n, 3, 3), y (m, 3, 3), and collects the starts whose final score satisfies S ≥ (1 − eps) S_max as
     "nearly optimal".

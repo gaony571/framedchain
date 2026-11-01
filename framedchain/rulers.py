@@ -1,9 +1,12 @@
-"""The ruler family: D_{w,ℓ} with a position term, and the TM-form distance D_TM at fixed d₀.
+"""The rulers module: the distance D_TM at fixed d₀ (the TM-align objective as an edit-distance metric, Theorem 2 of
+the paper) and D_{w,ℓ} (frame terms with a position term; not used in the paper).
 
-Common frame (the general lemma of the paper). If the features of terms a and the distance δ between them are
-invariant under the rigid motions G, the gap cost c is G-invariant, and c(a) ≤ δ(a, b) + c(b), then
+The general lemma of the paper. If the features of terms a and the distance δ between them are invariant under the
+rigid motions G, the gap cost c is G-invariant, and c(a) ≤ δ(a, b) + c(b), then
     D² = min over (order-preserving partial correspondence π, g ∈ G) of Σ_{(i,j)∈π} δ(a_i, g b_j)² + Σ_{unmatched} c²
-is a metric on the quotient (identifying insertion/removal of zero-cost terms and a common g).
+is a pseudometric on the quotient (identifying insertion/removal of zero-cost terms and a common g); it is a metric
+when, in addition, the gap cost vanishes only at the zero term and the minimum over G is attained (for D_TM the
+minimum over translations is attained because the score vanishes at infinite separation).
 
 D_{w,ℓ}. Feature of edge i: (w·x_i, p_i/ℓ) (x_i = s_i R_i/2, p_i the midpoint of the edge); δ is their Euclidean
 distance and c = w‖x‖.
@@ -15,7 +18,7 @@ f(0) = 0, hence a metric); c² = 1/2.
     1 − δ² = 1/(1 + r²) is the TM residue score, so D_TM² = (n + m)/2 − S_TM,  S_TM = max Σ_{(i,j)∈π} 1/(1 + r_ij²).
   At fixed d₀ it is a metric (the objective of TM-align = D_TM at fixed d₀). TM-score adds d₀ = d₀(L), division by a
   length and the 1 − S transform; the non-metric behavior of 1 − TM comes from the shorter-length normalization and the
-  1 − S transform (the TM factorial design of the paper).
+  1 − S transform (the factorial comparison of the paper).
 
 Computation. For a fixed pose (U, t) the correspondence is exact by dynamic programming. For a fixed correspondence
   D_{w,ℓ}: t is the difference of the centroids of the matched midpoints and U is exact from the SVD of the combined
@@ -330,7 +333,7 @@ def wl_cost(x, y, match, U, t, ell, w=1.0, p=None, q=None):
     return c + w * w * float((x[mi] ** 2).sum() + (y[mj] ** 2).sum())
 
 
-# Factorial design of the TM forms: (fixed d₀ / d₀(L)) × (no division / division by L̄ = (n + m)/2) × (square-root distance form / 1 − S form).
+# Factorial comparison of the TM forms: (fixed d₀ / d₀(L)) × (no division / division by L̄ = (n + m)/2) × (square-root distance form / 1 − S form).
 def tm_forms(S, n, m):
     """S_TM (computed at the given d₀) -> the four forms. At fixed d₀, 'sqrt_raw' (D_TM) and 'sqrt_norm' (D_TM/√L̄) are
     metrics (the theorem and the normalized metric of the paper); the linear forms 'lin_raw' and 'lin_norm' are not."""

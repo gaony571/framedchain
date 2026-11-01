@@ -14,16 +14,20 @@ fluctuations can be compared bond by bond.
   <img src="docs/framed_chains.png" width="720" alt="Schematic of framed chains: a bond frame, an order-preserving alignment of two chains of different lengths with zero matrices for unmatched bonds, the split of the squared distance into shared and unshared parts, and a geodesic between the chains">
 </p>
 
-*Framed chains and the edit distance (Fig 1 of the paper).* (A) Each virtual Cα–Cα bond i is represented by
-x<sub>i</sub> = s<sub>i</sub>R<sub>i</sub>/2, the frame [f₁, f₂, f₃] of the bond and its peptide plane scaled by the relative bond length.
-(B) Two chains of different lengths are aligned by an order-preserving correspondence and one global rotation;
-unmatched bonds face zero matrices. (C) The squared distance splits exactly into shared-bond and unshared-bond
-parts. (D) Along the geodesic, shared terms move linearly and unshared terms shrink to or grow from zero.
+**Fig 1. Framed chains and the edit distance.** (A) Each virtual Cα–Cα bond i is represented by x<sub>i</sub> =
+s<sub>i</sub>R<sub>i</sub>/2, the frame [f₁, f₂, f₃] of the bond and its peptide plane scaled by the relative bond
+length (f₃ points out of the page). (B) Two chains of different lengths are aligned by an order-preserving
+correspondence and one global rotation; unmatched bonds face zero matrices. (C) The squared distance splits exactly into
+shared-bond (blue) and unshared-bond (orange) parts. (D) The geodesic between the chains: shared terms move linearly,
+unshared terms shrink to or grow from zero. In (B) and (D), each bond term is drawn in two dimensions as an arrow along
+f₁ with a tick along f₂, both scaled with the term; blue, shared bonds (solid lines join the bonds paired by the
+correspondence); orange, unshared bonds; open circles, zero matrices (in B, marked 0 and joined by a dotted line to the
+unmatched bond that faces each). The lower chain in (B) is drawn after the global rotation U.
 
 The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (submitted). It was called framespace up to version 0.3.3 (same
 computations; see `CHANGELOG.md`).
 
-This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-specified decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycenters) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
+This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the distance D_TM of the TM-align objective at fixed d₀). Pre-specified decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, the column-wise mean/spread decomposition of W₂ in aligned coordinates, soft correspondences, barycenters) are *not* included (the mean-shift and spread terms of κ² used in the paper are those of `component_ratio`); the analysis scripts of the paper live in the companion reproduction repository.
 
 ## What is in the space
 
@@ -41,12 +45,12 @@ This package contains (i) the definitions and proven properties of the space, an
 - **PDB reader.** Residues with N, Cα, C and O; multiple MODELs as a batch; terminal caps (ACE, NME, NHE) removed; first altLoc. Chain breaks are not checked when reading; they appear as long edges, and `is_break` flags edges longer than 4.2 Å (the criterion of the paper).
 
 Fixed in the paper (0.3.x):
-- **Matched and gap parts** (`parts`; the shared-bond and unshared-bond parts of the paper). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalized distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
-- **Near-optimal correspondences** (`parts.near_optimal_alignments`). Correspondences of all starts with S ≥ (1 − ε) S_max (ε = 0.005), the number of distinct ones, and their intersection (the joint gate of the paper's primary and confirmatory sequence-identity tests).
+- **Matched and gap parts** (`parts`; the shared-bond and unshared-bond parts of the paper). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Normalized distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
+- **Near-optimal correspondences** (`parts.near_optimal_alignments`). Correspondences of all starts with S ≥ (1 − ε) S_max (ε = 0.005), the number of distinct ones, and their intersection (the intersection of near-optimal alignments in the decision rules of the paper's primary and confirmatory sequence-identity tests).
 - **Reduced computation** (`reduced`). The two ensemble mean points are aligned with 128 starts (rotation U0, correspondence π̄); each sample pair then starts from one rotation R_kᵀ U0 R′_l and the correspondence is restricted to a band around π̄ (half-width 5, or 20 for the pairs of the comparison across sequences with TM-score below 0.3; doubled only for pairs touching the band edge). The banded DP equals the full DP with out-of-band pairs blocked; values are upper bounds. The edge rule is a check, not a guarantee (accuracy was measured against branch-and-bound).
 - **Energy statistics** (`ensemble`). From mean distances between independent runs — C (cross) and B_P, B_Q (between different runs of the same side): Δ² = 2C − B_P − B_Q, w̄ = (B_P + B_Q)/2, ratio = √((C/w̄)² − 1), main statistic Δ²/√n̄, exponent-2 version Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2)/n_edges. By the bilinear identity Δ² is unbiased whatever the negative type of the ground distance. Estimation is an incomplete U-statistic with 2,000 frame pairs per run pair. Also: the negative-type diagnostic η₊ (positive spectral mass of J D J), the component ratio, the regime boundary, and the aligned-coordinate (Euclidean, fixed correspondence) version `aligned_energy_stats`.
 - **Shared-edge spread profiles** (`ensemble`). Per-edge spread after generalized Procrustes on the shared edges only, the rank correlation of two profiles (dynamics similarity r_dyn), and projection of a mean point onto real terms s·R/2.
-- **Ruler family** (`rulers`, needs numba). D_{w,ℓ} with a position term and the fixed-d₀ TM-type distance D_TM (the TM-align objective is D_TM at fixed d₀), costs by definition, the four TM-score forms, and triangle-violation rates. Values are upper bounds; no certificate.
+- **D_TM** (`rulers`, needs numba). The distance D_TM at fixed d₀ (the TM-align objective as an edit-distance metric on α-carbon positions), costs by definition, the four TM-score forms, and triangle-violation rates; the module also holds D_{w,ℓ} (frame terms with a position term), which the paper does not use. Values are upper bounds; no certificate.
 
 Not included: mapping interior points back to structures (no threshold has been fixed).
 
@@ -109,7 +113,7 @@ w = fc.ensemble_w2(x, y)                        # W₂ between ensembles
 
 # one ensemble cell as in the paper: runs of 100 frames concatenated in EA and EB
 st = fc.ensemble_statistic(EA, EB, n_per_run=100)   # st['D2'], st['D2_sqrt_n'], st['ratio'], st['wbar'], st['dmu2']
-near = fc.near_optimal_alignments(mA, mB)           # near['intersection'] for the joint gate
+near = fc.near_optimal_alignments(mA, mB)           # near['intersection']: matches in every near-optimal alignment
 r_dyn = fc.dynamics_similarity(FA, FB, shared_pairs)
 
 from framedchain import rulers                       # needs numba
@@ -178,7 +182,7 @@ pip install -e .[test,rulers]
 pytest tests
 ```
 
-`tests/test_space.py` checks the definitions and properties on synthetic structures (quaternions, Procrustes, atom ↔ coordinate ↔ Cα round trips, chain-break flags, PDB round trip, invariances, truncation and edge-shrink laws, triangle inequality, shortest geodesic, d_fix as an upper bound, scales, mean point, invariant table, certificate, optimal transport, ensemble W₂). `tests/test_paper_methods.py` checks the paper's computations (banded DP = blocked full DP, reduced computation equals the full computation and is an upper bound, band widening, Δ² = cross energy distance − mean floor for any distance, the ratio identity, Δμ²₂ = run-mean shift in Euclidean coordinates, null vs shifted ensembles, η₊, spread-profile invariance, projection, matched + gap = d², D̂, near-optimal sets, aligned-coordinate statistics). `tests/test_rulers.py` (skipped without numba) checks the ruler family. `tests/test_usage.py` checks the user-facing paths (numpy and mixed inputs, PDB files on disk, batching with zero padding, ensembles of different lengths). 47 tests, about a minute on a laptop CPU.
+`tests/test_space.py` checks the definitions and properties on synthetic structures (quaternions, Procrustes, atom ↔ coordinate ↔ Cα round trips, chain-break flags, PDB round trip, invariances, truncation and edge-shrink laws, triangle inequality, shortest geodesic, d_fix as an upper bound, scales, mean point, invariant table, certificate, optimal transport, ensemble W₂). `tests/test_paper_methods.py` checks the paper's computations (banded DP = blocked full DP, reduced computation equals the full computation and is an upper bound, band widening, Δ² = cross energy distance − mean floor for any distance, the ratio identity, Δμ²₂ = run-mean shift in Euclidean coordinates, null vs shifted ensembles, η₊, spread-profile invariance, projection, matched + gap = d², D̂, near-optimal sets, aligned-coordinate statistics). `tests/test_rulers.py` (skipped without numba) checks the `rulers` module (D_TM and D_{w,ℓ}). `tests/test_usage.py` checks the user-facing paths (numpy and mixed inputs, PDB files on disk, batching with zero padding, ensembles of different lengths). 47 tests, about a minute on a laptop CPU.
 
 ## Relation to the code that produced the paper
 

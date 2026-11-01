@@ -1,6 +1,6 @@
-"""Tests of the ruler family (rulers): agreement of computation and definition, the core of the triangle inequality
-(composition of correspondences and poses), and the basic distance as ℓ → ∞.
-Moved from framedchain_wip/tests_stage0/test_rulers.py of the framedchain-paper repository. Skipped without numba."""
+"""Tests of the rulers module (D_TM and D_{w,ℓ}): agreement of computation and definition, the core of the triangle
+inequality (composition of correspondences and poses), and the basic distance as ℓ → ∞.
+Moved from framespace_wip/tests_stage0/test_rulers.py of the framedchain-paper repository. Skipped without numba."""
 import math
 
 import numpy as np

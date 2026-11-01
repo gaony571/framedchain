@@ -4,6 +4,14 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 
 ## Unreleased (documentation only)
 
+- Docstrings, comments and the README in the paper's terms, with `docs/API.md` regenerated: the README shows Fig 1 as
+  redrawn for the paper (`docs/framed_chains.png`) with the paper's caption; "normalized distance D̂" for
+  "mean-normalized", "intersection of near-optimal alignments" for "joint gate", "factorial comparison" for "factorial
+  design", the population counterpart of Δ² as in the paper; ratio = 1 lies inside the crossing band, between the near
+  and far limits; the general lemma in `rulers` gives a pseudometric, and a metric under the paper's conditions; tied
+  values in `dynamics_similarity` get distinct ranks in sort order; D_{w,ℓ} is marked as not used in the paper; the
+  cis Cα–Cα distance is no longer quoted; `tests/test_rulers.py` names its source as `framespace_wip/tests_stage0` of
+  framedchain-paper; the date of 0.4.1 is given in UTC (2026-10-27). No code changed.
 - American spelling in two more docstrings ("majorization" in `rulers`, "replicates" in `ensemble`) and
   `docs/API.md` regenerated; the README no longer says the companion repository is to be made public with the paper
   (both repositories become public before the paper is submitted); this file lists sections newest first. No code changed.
@@ -30,7 +38,7 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
   before; file tree `6db30c0` throughout). The full map is in `docs/PROVENANCE.md` of the framedchain-paper repository.
 - The Korean translation of the README (`README.ko.md`) was removed; the README is in English only.
 
-## 0.4.1 (2026-10-28)
+## 0.4.1 (2026-10-27)
 
 - Documentation only: the paper's title, *Comparing protein conformational ensembles across sequences and lengths* (in preparation), and its
   terms (shared-bond and unshared-bond parts) in the README, README.ko and CITATION.cff. No code change.

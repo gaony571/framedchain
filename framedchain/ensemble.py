@@ -4,11 +4,13 @@ For runs (independent replicates) P_1..P_r and Q_1..Q_s, C = mean distance over 
 distance over pairs of different runs on the same side.
     Δ² = 2C − B_P − B_Q  (= cross energy distance − (floor_P + floor_Q)/2; within-run mean distances cancel)
 Because the energy distance is a symmetric bilinear form in the difference of measures, Δ² is an unbiased estimator of
-the energy distance between the central distributions when runs are independent, whatever the negative type of the
-ground distance (D is not of negative type). What is lost is only the guarantee ℰ_D ≥ 0; on real samples this is
-diagnosed by the positive-eigenvalue fraction η₊ of J D J (eta_plus).
+its population counterpart, defined by the expected frame distribution of one run on each side, when runs are
+independent and identically distributed, whatever the negative type of the ground distance (D is not of negative
+type). What is lost is only the guarantee ℰ_D ≥ 0; on real samples this is diagnosed by the positive-eigenvalue
+fraction η₊ of J D J (eta_plus).
     w̄ = (B_P + B_Q)/2,  ratio = √((C/w̄)² − 1) = √((Δ²/(2w̄) + 1)² − 1)  (the signal-to-noise that follows exactly from cross ÷ within distances)
-ratio = 1 separates the near and far regimes (Δ²/√n = 2(√2 − 1) w̄/√n). The main statistic is Δ²/√n̄.
+ratio = 1 lies between the near and far limits, inside the crossing band of the paper (near: ratio < 0.5; crossing:
+0.5–2; far: ratio > 2); there Δ²/√n = 2(√2 − 1) w̄/√n. The main statistic is Δ²/√n̄.
     Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2) / number of edges   (C₂, B₂ are means of squared distances; exponent-2 energy statistic, mean shift)
 In aligned (Euclidean) coordinates Δμ²₂ equals the mean shift between run means exactly (the spread terms cancel);
 over D it is the generalization.
@@ -55,7 +57,7 @@ def component_ratio(C, B_P, B_Q, dmu2, n_edges):
 
 
 def regime_boundary(wbar, n_edges):
-    """Δ²/√n at the boundary of the two regimes (ratio = 1): 2(√2 − 1) w̄/√n."""
+    """Δ²/√n at ratio = 1, between the near and far limits (inside the paper's crossing band 0.5–2): 2(√2 − 1) w̄/√n."""
     return float(2 * (np.sqrt(2) - 1) * wbar / np.sqrt(n_edges))
 
 
@@ -165,7 +167,7 @@ def edge_spread_profile(F, idx, iters=3):
 def dynamics_similarity(Fa, Fb, pairs, iters=3):
     """Dynamics similarity r_dyn of two protein ensembles on shared edges: Spearman rank correlation of the spread
     profiles on the paired shared edges pairs (k, 2). Shared edges are the matches of the optimal alignment between the
-    two mean points (π̄). Ties are not split in the ranks."""
+    two mean points (π̄). Tied values receive distinct ranks in sort order (no average ranks), as in the paper's code."""
     pairs = np.asarray(pairs, int).reshape(-1, 2)
     va = edge_spread_profile(Fa, pairs[:, 0], iters)
     vb = edge_spread_profile(Fb, pairs[:, 1], iters)
