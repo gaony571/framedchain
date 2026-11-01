@@ -39,18 +39,18 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 ## 0.3.2 (2026-10-26)
 
 - Docstrings, comments and messages translated into English; code unchanged (AST comparison against 0.3.1).
-- Licence metadata as an SPDX expression (`license = "MIT"`, `license-files`).
+- License metadata as an SPDX expression (`license = "MIT"`, `license-files`).
 
 ## 0.3.1 (2026-10-26)
 
 - `parts.near_optimal_alignments` and `ensemble.aligned_energy_stats` (computations of the paper).
-- MIT licence, `CITATION.cff`, English README.
+- MIT license, `CITATION.cff`, English README.
 
 ## 0.3.0 (2026-10-25)
 
 - Computations and estimators fixed in the paper: `reduced` (mean-point starts, banded DP, `pair_scores`),
   `ensemble` (energy statistic, components, incomplete U-statistic, η₊, spread profiles, r_dyn), `parts`
-  (matched/gap split, normalised distance), `rulers` (D_{w,ℓ}, D_TM).
+  (matched/gap split, normalized distance), `rulers` (D_{w,ℓ}, D_TM).
 
 ## 0.2.0 (2026-10-16)
 

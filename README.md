@@ -10,32 +10,42 @@ into shared-bond and unshared-bond parts. For ensembles, energy statistics corre
 under any underlying metric, and once correspondence and rotation are fixed the space is Euclidean, so mean shifts and
 fluctuations can be compared bond by bond.
 
+<p align="center">
+  <img src="docs/framed_chains.png" width="720" alt="Schematic of framed chains: a bond frame, an order-preserving alignment of two chains of different lengths with zero matrices for unmatched bonds, the split of the squared distance into shared and unshared parts, and a geodesic between the chains">
+</p>
+
+*Framed chains and the edit distance (Fig 1 of the paper).* (A) Each virtual Cα–Cα bond i is represented by
+x<sub>i</sub> = s<sub>i</sub>R<sub>i</sub>/2, the frame [f₁, f₂, f₃] of the bond and its peptide plane scaled by the relative bond length.
+(B) Two chains of different lengths are aligned by an order-preserving correspondence and one global rotation;
+unmatched bonds face zero matrices. (C) The squared distance splits exactly into shared-bond and unshared-bond
+parts. (D) Along the geodesic, shared terms move linearly and unshared terms shrink to or grow from zero.
+
 The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (submitted). It was called framespace up to version 0.3.3 (same
 computations; see `CHANGELOG.md`).
 
-This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-registered decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycentres) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
+This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the ruler family D_{w,ℓ}/D_TM). Pre-specified decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, mean/spread decompositions, soft correspondences, barycenters) are *not* included; the analysis scripts of the paper live in the companion reproduction repository.
 
 ## What is in the space
 
 - **Coordinates.** For each edge i (the virtual bond Cα_i → Cα_{i+1}) a frame R_i = [T, U, V]: T is the edge direction, U the C=O direction with its T component removed, V = T × U. The term is x_i = s_i R_i / 2 with length ratio s_i = l_i / l0, l0 = 3.83 Å. The first column times 2·l0 is the edge vector, so Cα positions are recovered from the coordinates alone. Edges shorter than 3.45 Å are *cis*.
 - **Same point.** Inserting or deleting zero matrices, or left-multiplying all terms by one rotation, gives the same point.
 - **Distance (proved).** d² = min over (order-preserving partial correspondence, rotation) of [Σ matched ‖x_i − U y_j‖² + Σ unmatched ‖·‖²] = ‖x‖² + ‖y‖² − 2S.
-- **Computation.** With the rotation fixed the correspondence is an exact dynamic programme; with the correspondence fixed the rotation is an exact 3×3 SVD. We alternate from 128 starting rotations (identity + 127 random). Computed values are upper bounds.
+- **Computation.** With the rotation fixed the correspondence is an exact dynamic program; with the correspondence fixed the rotation is an exact 3×3 SVD. We alternate from 128 starting rotations (identity + 127 random). Computed values are upper bounds.
 - **Certificate.** Branch-and-bound over rotation space certifies the global optimum within a tolerance (real structures only).
-- **Known correspondence.** d_fix optimises the rotation only (one SVD; an upper bound of d). Use one of d and d_fix within an analysis.
+- **Known correspondence.** d_fix optimizes the rotation only (one SVD; an upper bound of d). Use one of d and d_fix within an analysis.
 - **Geodesic (proved).** After aligning columns with the optimal correspondence and rotation, the straight segment is a shortest path; unmatched terms shrink to / grow from zero. Interior points are not real structures.
-- **Mean point.** For a fixed-correspondence ensemble (one protein), alternate aligning to the mean and term-wise averaging until convergence (minimises Σ d_fix²). Independence of the starting point is measured, not proved.
+- **Mean point.** For a fixed-correspondence ensemble (one protein), alternate aligning to the mean and term-wise averaging until convergence (minimizes Σ d_fix²). Independence of the starting point is measured, not proved.
 - **Invariant table.** G_ij = x_iᵀ x_j and δ_i = det x_i are exactly invariant to global rotation; real structures are recovered from the table.
 - **Scales.** d / √(0.75(n+m)), sim_long = S / (0.75 max(n, m)), d_fix / √(2n).
 - **Ensemble W₂.** Exact optimal transport with d² as the ground cost (a metric because d is a metric; an upper bound because sample-pair d is).
 - **PDB reader.** Residues with N, Cα, C and O; multiple MODELs as a batch; terminal caps (ACE, NME, NHE) removed; first altLoc; chain breaks are not checked (they appear as long edges).
 
 Fixed in the paper (0.3.x):
-- **Matched and gap parts** (`parts`; the shared-bond and unshared-bond parts of the paper). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalised distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
+- **Matched and gap parts** (`parts`; the shared-bond and unshared-bond parts of the paper). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalized distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
 - **Near-optimal correspondences** (`parts.near_optimal_alignments`). Correspondences of all starts with S ≥ (1 − ε) S_max (ε = 0.005), the number of distinct ones, and their intersection (the joint gate of the paper's P3 and confirmation C analyses).
 - **Reduced computation** (`reduced`). The two ensemble mean points are aligned with 128 starts (rotation U0, correspondence π̄); each sample pair then starts from one rotation R_kᵀ U0 R′_l and the correspondence is restricted to a band around π̄ (half-width 5, doubled only for pairs touching the band edge). The banded DP equals the full DP with out-of-band pairs blocked; values are upper bounds. The edge rule is a check, not a guarantee (accuracy was measured against branch-and-bound).
 - **Energy statistics** (`ensemble`). From mean distances between independent runs — C (cross) and B_P, B_Q (between different runs of the same side): Δ² = 2C − B_P − B_Q, w̄ = (B_P + B_Q)/2, ratio = √((C/w̄)² − 1), main statistic Δ²/√n̄, exponent-2 version Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2)/n_edges. By the bilinear identity Δ² is unbiased whatever the negative type of the ground distance. Estimation is an incomplete U-statistic with 2,000 frame pairs per run pair. Also: the negative-type diagnostic η₊ (positive spectral mass of J D J), the component ratio, the regime boundary, and the aligned-coordinate (Euclidean, fixed correspondence) version `aligned_energy_stats`.
-- **Shared-edge spread profiles** (`ensemble`). Per-edge spread after generalised Procrustes on the shared edges only, the rank correlation of two profiles (dynamics similarity r_dyn), and projection of a mean point onto real terms s·R/2.
+- **Shared-edge spread profiles** (`ensemble`). Per-edge spread after generalized Procrustes on the shared edges only, the rank correlation of two profiles (dynamics similarity r_dyn), and projection of a mean point onto real terms s·R/2.
 - **Ruler family** (`rulers`, needs numba). D_{w,ℓ} with a position term and the fixed-d₀ TM-type distance D_TM (the TM-align objective is D_TM at fixed d₀), costs by definition, the four TM-score forms, and triangle-violation rates. Values are upper bounds; no certificate.
 
 Not included: mapping interior points back to structures (no threshold has been fixed).
@@ -81,7 +91,7 @@ Python 3.9. GPU use is a matter of passing CUDA tensors (all computations follow
 python examples/quickstart.py      # no input files; compare with examples/quickstart_output.txt
 ```
 
-It builds two synthetic backbones and prints the distance, its certificate, the matched/gap split, the normalised
+It builds two synthetic backbones and prints the distance, its certificate, the matched/gap split, the normalized
 distance and the energy statistic between two small ensembles (under a minute on a laptop CPU).
 
 ## Use
@@ -148,7 +158,7 @@ repository (see below), not by re-running this package.
 |---|---|
 | `geometry` | rotations, quaternions, Procrustes, polar decomposition |
 | `frames` | PDB reader, frames and coordinates from atoms, edge lengths, *cis*, real-structure test, Cα recovery |
-| `distance` | correspondence DP, alternating optimisation (batched, GPU), distance, d_fix, scales, zero padding |
+| `distance` | correspondence DP, alternating optimization (batched, GPU), distance, d_fix, scales, zero padding |
 | `certify` | branch-and-bound certificate |
 | `operations` | column alignment, geodesic, mean point |
 | `table` | relative-frame table, determinants, recovery |
@@ -172,7 +182,7 @@ pytest tests
 
 ## Relation to the code that produced the paper
 
-The paper's analyses ran on framespace 0.2.0 (this package under its earlier name; tag `v0.2.0`, commit 5e4fdf9; registered bundle md5 4edba596), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts with registered md5 sums. These are kept, as run, in the companion repository framedchain-paper (https://github.com/gaony571/framedchain-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input; 0.4.0 renames the package to framedchain):
+The paper's analyses ran on framespace 0.2.0 (this package under its earlier name; tag `v0.2.0`, commit 5e4fdf9; bundle md5 4edba596, recorded in the first time-stamped record of the paper), the research-stage code `framespace_wip/stage0` (bundle md5 6703fa26) and analysis scripts whose md5 sums were recorded. These are kept, as run, in the companion repository framedchain-paper (https://github.com/gaony571/framedchain-paper, to be made public with the paper), together with a map from each result to its script and output. Version 0.3.x moves the fixed computations into the package without changing the code of the 0.2.0 modules (0.2.0 is tag `v0.2.0`; 0.3.2 only translated docstrings and comments into English, which an AST comparison confirms; 0.3.3 lets `align` accept numpy input, with identical results for tensor input; 0.4.0 renames the package to framedchain):
 
 | 0.3.x | As-run code |
 |---|---|
@@ -192,8 +202,25 @@ Frame-pair sampling order differs between scripts (seeds derived from domain nam
 
 On the same synthetic inputs (fixed seeds, CPU, float64), version 0.4.1 gives exactly the values of the as-run code — distances, alignments, certificates, mean points, ensemble W₂, the reduced computation and the energy statistics (zero difference; check of 2026-10-28, script `code/r44_repro.py` in framedchain-paper, run with checkouts of both repositories side by side).
 
-## Licence and citation
+## License and citation
 
-MIT licence, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper and this software (`CITATION.cff`).
+MIT license, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper and this software (`CITATION.cff`).
+
+```bibtex
+@unpublished{An2026ensembles,
+  author = {An, Hyeonsu},
+  title  = {Comparing protein conformational ensembles across sequences and lengths},
+  year   = {2026},
+  note   = {Manuscript submitted}
+}
+
+@software{An2026framedchain,
+  author  = {An, Hyeonsu},
+  title   = {framedchain: framed chains for protein structures and ensembles of any length},
+  version = {0.4.1},
+  year    = {2026},
+  url     = {https://github.com/gaony571/framedchain}
+}
+```
 
 Questions and bug reports: GitHub issues of this repository.
