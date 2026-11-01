@@ -2,13 +2,11 @@
 
 framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use the old name.
 
-## Repository history (2026-10-31)
+## Unreleased (documentation only)
 
-- The commit messages, written in Korean until 2026-10-29, were translated into English by rewriting the history.
-  No file, author or date changed (each commit keeps its file tree hash, and the tags keep their messages and dates),
-  but every commit identifier changed again. Tag `v0.2.0` is now commit `5e4fdf9` (`866995c` from 2026-10-26, `efcdd42`
-  before; file tree `6db30c0` throughout). The full map is in `docs/PROVENANCE.md` of the framedchain-paper repository.
-- The Korean translation of the README (`README.ko.md`) was removed; the README is in English only.
+- American spelling in two more docstrings ("majorization" in `rulers`, "replicates" in `ensemble`) and
+  `docs/API.md` regenerated; the README no longer says the companion repository is to be made public with the paper
+  (both repositories become public before the paper is submitted); this file lists sections newest first. No code changed.
 
 ## 0.4.2 (2026-11-01)
 
@@ -19,6 +17,14 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 - Documentation: American spelling in docstrings, comments, the README and this file, `docs/API.md` regenerated;
   the README shows Fig 1 of the paper (`docs/framed_chains.png`) and gives BibTeX entries; "pre-specified" replaces
   "pre-registered", as in the paper; `CITATION.cff` gives the author's affiliation and ORCID and an abstract.
+
+## Repository history (2026-10-31)
+
+- The commit messages, written in Korean until 2026-10-29, were translated into English by rewriting the history.
+  No file, author or date changed (each commit keeps its file tree hash, and the tags keep their messages and dates),
+  but every commit identifier changed again. Tag `v0.2.0` is now commit `5e4fdf9` (`866995c` from 2026-10-26, `efcdd42`
+  before; file tree `6db30c0` throughout). The full map is in `docs/PROVENANCE.md` of the framedchain-paper repository.
+- The Korean translation of the README (`README.ko.md`) was removed; the README is in English only.
 
 ## 0.4.1 (2026-10-28)
 

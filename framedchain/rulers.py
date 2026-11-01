@@ -20,7 +20,7 @@ f(0) = 0, hence a metric); c² = 1/2.
 Computation. For a fixed pose (U, t) the correspondence is exact by dynamic programming. For a fixed correspondence
   D_{w,ℓ}: t is the difference of the centroids of the matched midpoints and U is exact from the SVD of the combined
   cross-covariance;
-  D_TM: weighted least squares (weights 1/(1 + r²)², a majorisation by the upper tangent of the concave function), so
+  D_TM: weighted least squares (weights 1/(1 + r²)², a majorization by the upper tangent of the concave function), so
   the value never decreases.
 The two are alternated from many poses and the best is kept. Starts: fragment-pair superpositions (the local
 superposition of TM-align), gapless threading, (search) superpositions of sub-fragments of the found correspondence
