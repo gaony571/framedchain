@@ -2,7 +2,7 @@
 
 Edge i is Cα_i → Cα_{i+1}. Its frame R_i = [T, U, V] (columns):
   T = direction of the edge, U = C=O direction of the peptide bond across the edge with its T component removed and
-  normalised, V = T × U.
+  normalized, V = T × U.
 Coordinates are x_i = s_i · R_i / 2, s_i = l_i / l0 (l_i is the edge length; default l0 = 3.83 Å). The squared norm is 0.75 s_i².
 The first column times 2·l0 is the edge vector, so the Cα positions are recovered from the coordinates alone.
 """
@@ -10,6 +10,7 @@ import numpy as np
 
 L0 = 3.83        # mean length of a trans edge (Å), the reference for length ratios
 CIS_MAX = 3.45   # edges shorter than this are cis (cis about 3.09 Å, trans about 3.83 Å, nothing in between)
+BREAK_MIN = 4.2  # edges longer than this span a chain break (the criterion of the paper's chain-break check)
 CAPS = ('ACE', 'NME', 'NHE')
 
 
@@ -64,6 +65,12 @@ def is_cis(x, cis_max=CIS_MAX, l0=L0):
     return (l > 0) & (l < cis_max)
 
 
+def is_break(x, break_min=BREAK_MIN, l0=L0):
+    """Terms whose edge length exceeds break_min (4.2 Å by default). Consecutive Cα are about 3.8 Å (trans) or 3.1 Å (cis)
+    apart, so a longer edge joins residues on either side of a gap in the chain."""
+    return edge_lengths(x, l0) > break_min
+
+
 def n_edges(x, eps=1e-12):
     """Number of non-zero terms (the stratum of a point (n, 3, 3)). Terms with squared norm ≤ eps count as zero."""
     return int(((np.asarray(x) ** 2).sum((-1, -2)) > eps).sum())
@@ -79,7 +86,7 @@ def ca_trace(x, l0=L0):
 def read_pdb_backbone(path, caps=CAPS):
     """PDB (several MODELs allowed) -> dict(N, CA, C, O: (F, L, 3), resnames). Keeps residues with all four atoms and
     drops the residues in caps (terminal caps). For several altLocs the first one is used. Residues are joined in file
-    order; chain breaks are not checked (they appear as long edges)."""
+    order; chain breaks are not checked here (they appear as long edges, which is_break flags)."""
     models, cur, order, names = [], {}, [], {}
     with open(path) as f:
         for line in f:

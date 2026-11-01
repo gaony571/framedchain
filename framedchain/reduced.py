@@ -2,7 +2,7 @@
 same-protein ensembles.
 
 Banded DP. The maximum score of an order-preserving partial correspondence whose matches are restricted to the band
-B = {(i, j): lo_i ≤ j < lo_i + w}. If lo never decreases (the centre line is monotone), storing only the band cells of
+B = {(i, j): lo_i ≤ j < lo_i + w}. If lo never decreases (the center line is monotone), storing only the band cells of
 each row is exact:
   F_i[j] (j 1-based, y[:j]) equals F_{i−1}[j] for j < lo_i, and equals F_{i−1}[lo_{i−1} + w] for j > lo_{i−1} + w
   (the bands of earlier rows lie no further right). So the previous row's band values are moved over, extended to the
@@ -30,8 +30,8 @@ from .operations import mean_point
 
 
 def center_path(match, m):
-    """Matches between the mean points (n, m) bool -> centre column per row (n,) (monotone). Unmatched rows are filled
-    linearly between the neighbouring matched columns."""
+    """Matches between the mean points (n, m) bool -> center column per row (n,) (monotone). Unmatched rows are filled
+    linearly between the neighboring matched columns."""
     M = match.cpu().numpy() if torch.is_tensor(match) else np.asarray(match)
     n = M.shape[0]
     rows, cols = np.nonzero(M)
@@ -42,7 +42,7 @@ def center_path(match, m):
 
 
 def band_windows(center, m, k):
-    """Centre columns (n,) and half-width k -> left ends of the band lo (n,) (non-decreasing) and width w = min(2k+1, m)."""
+    """Center columns (n,) and half-width k -> left ends of the band lo (n,) (non-decreasing) and width w = min(2k+1, m)."""
     w = int(min(2 * k + 1, m))
     lo = np.clip(np.asarray(center) - k, 0, m - w)
     return np.maximum.accumulate(lo).astype(int), w

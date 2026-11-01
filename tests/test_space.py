@@ -10,7 +10,7 @@ LOC_C, LOC_O = np.array([1.42, 0.53, 0.01]), np.array([1.65, 1.74, 0.01])   # tr
 
 
 def chain(n, seed, noise=0.15, cis=()):
-    """Coordinates (n, 3, 3) = s R / 2 of a real structure whose neighbouring edges have similar rotations. Trans s ≈ 1 ± 0.016, cis positions s = 0.81."""
+    """Coordinates (n, 3, 3) = s R / 2 of a real structure whose neighboring edges have similar rotations. Trans s ≈ 1 ± 0.016, cis positions s = 0.81."""
     g = torch.Generator().manual_seed(seed)
     step = fc.expmap(torch.tensor([0.3, 1.2, 0.4], dtype=torch.float64))
     R = [torch.eye(3, dtype=torch.float64)]
@@ -75,6 +75,15 @@ def test_settable_constants():
     x2 = fc.to_coordinates(R, l, l0=3.80)
     assert np.allclose(fc.ca_trace(x2, l0=3.80), CA) and np.allclose(fc.edge_lengths(x2, l0=3.80), l)
     assert fc.is_cis(x).sum() == 1 and fc.is_cis(x, cis_max=2.0).sum() == 0
+
+
+def test_chain_breaks():
+    """An edge longer than 4.2 Å (a gap in the chain) is flagged, and only that edge; the threshold is settable."""
+    x = chain(20, 4, cis=(3,)).numpy()
+    assert not fc.is_break(x).any()
+    x[9] *= 1.5                                    # this edge becomes about 5.7 Å long
+    assert fc.is_break(x)[9] and fc.is_break(x).sum() == 1 and not fc.is_break(x, break_min=6.0).any()
+    assert fc.BREAK_MIN == 4.2
 
 
 def test_self_and_symmetry():

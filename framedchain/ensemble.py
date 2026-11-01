@@ -11,7 +11,7 @@ diagnosed by the positive-eigenvalue fraction η₊ of J D J (eta_plus).
 ratio = 1 separates the near and far regimes (Δ²/√n = 2(√2 − 1) w̄/√n). The main statistic is Δ²/√n̄.
     Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2) / number of edges   (C₂, B₂ are means of squared distances; exponent-2 energy statistic, mean shift)
 In aligned (Euclidean) coordinates Δμ²₂ equals the mean shift between run means exactly (the spread terms cancel);
-over D it is the generalisation.
+over D it is the generalization.
 
 Estimation is an incomplete U-statistic: for each run pair the reduced-computation distances (reduced) of k frame
 pairs (default 2,000, without replacement) are averaged. All same-sequence cells of the paper computed by D use this
@@ -146,7 +146,7 @@ def project_to_real(m, s=None, degen_frac=0.5):
 
 def edge_spread_profile(F, idx, iters=3):
     """Per-edge spread profile on shared edges. F (N, n, 3, 3) are coordinates of one protein ensemble (aligned to its
-    mean point); idx are the shared edge indices. Generalised Procrustes (rotations only, around the own mean) on the
+    mean point); idx are the shared edge indices. Generalized Procrustes (rotations only, around the own mean) on the
     shared edges for `iters` rounds, then the mean squared scatter around the mean per edge -> (len(idx),)."""
     X = np.asarray(F)[:, idx].astype(np.float64)
     mu = X.mean(0)

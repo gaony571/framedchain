@@ -10,6 +10,16 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
   before; file tree `6db30c0` throughout). The full map is in `docs/PROVENANCE.md` of the framedchain-paper repository.
 - The Korean translation of the README (`README.ko.md`) was removed; the README is in English only.
 
+## 0.4.2 (2026-11-01)
+
+- `is_break` and `BREAK_MIN` (4.2 Å): flags edges long enough to span a gap in the chain, the criterion of the
+  paper's chain-break check. The PDB reader still joins residues in file order; use `is_break` on its output.
+- No computation changed: apart from docstrings, the code of every existing function is identical to 0.4.1 (syntax
+  trees compared module by module); the 47 tests (46 + one for `is_break`) pass and the quick-start values are the same.
+- Documentation: American spelling in docstrings, comments, the README and this file, `docs/API.md` regenerated;
+  the README shows Fig 1 of the paper (`docs/framed_chains.png`) and gives BibTeX entries; "pre-specified" replaces
+  "pre-registered", as in the paper; `CITATION.cff` gives the author's affiliation and ORCID and an abstract.
+
 ## 0.4.1 (2026-10-28)
 
 - Documentation only: the paper's title, *Comparing protein conformational ensembles across sequences and lengths* (in preparation), and its

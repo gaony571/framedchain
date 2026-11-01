@@ -14,7 +14,7 @@ D_TM. Feature of residue i: P_i (the Cα position); δ(a, b) = f(‖a − b‖/d
 f(0) = 0, hence a metric); c² = 1/2.
     1 − δ² = 1/(1 + r²) is the TM residue score, so D_TM² = (n + m)/2 − S_TM,  S_TM = max Σ_{(i,j)∈π} 1/(1 + r_ij²).
   At fixed d₀ it is a metric (the objective of TM-align = D_TM at fixed d₀). TM-score adds d₀ = d₀(L), division by a
-  length and the 1 − S transform; the non-metric behaviour of 1 − TM comes from the shorter-length normalisation and the
+  length and the 1 − S transform; the non-metric behavior of 1 − TM comes from the shorter-length normalization and the
   1 − S transform (the TM factorial design of the paper).
 
 Computation. For a fixed pose (U, t) the correspondence is exact by dynamic programming. For a fixed correspondence

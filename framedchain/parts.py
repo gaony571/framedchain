@@ -1,4 +1,4 @@
-"""Splitting and normalising the distance.
+"""Splitting and normalizing the distance.
 
 Matched part and gap part. At an optimal alignment (π, U)
     d² = Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{unmatched i} ‖x_i‖² + Σ_{unmatched j} ‖y_j‖²  =  matched part + gap part
@@ -7,7 +7,7 @@ alignment breaks such a match: the gap part contains not only insertions and del
 in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
 The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
-Mean normalisation. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
+Mean normalization. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
 unit sphere of a Hilbert space).
 """
 import numpy as np
@@ -43,7 +43,7 @@ def split_sq_distance(x, y, alignment=None, **kw):
 
 
 def normalized_distance(x, y, d=None, **kw):
-    """Mean-normalised distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound)."""
+    """Mean-normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound)."""
     x, y = as_tensor(x), as_tensor(y)
     y = y.to(x)
     if d is None:

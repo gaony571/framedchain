@@ -121,7 +121,7 @@ def distance(x, y, **kw):
 
 def fixed_sq_distance(x, y, kx=None, ky=None):
     """When the correspondence is known: d_fix² with the correspondence (kx ↔ ky; default: edge index to edge index)
-    fixed and only the rotation optimised; exact with one SVD.
+    fixed and only the rotation optimized; exact with one SVD.
     All pairs of batches x (I, n, 3, 3), y (J, m, 3, 3) -> (I, J). An upper bound on d."""
     x, y = as_tensor(x), as_tensor(y).to(as_tensor(x))
     kx = np.arange(x.shape[1]) if kx is None else kx
@@ -139,7 +139,7 @@ def length_scaled(d, n, m):
 
 
 def sim_long(S, n, m):
-    """S / (0.75 max(n, m)): similarity normalised by the longer structure."""
+    """S / (0.75 max(n, m)): similarity normalized by the longer structure."""
     return S / (0.75 * max(n, m))
 
 

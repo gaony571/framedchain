@@ -38,7 +38,7 @@ This package contains (i) the definitions and proven properties of the space, an
 - **Invariant table.** G_ij = x_iᵀ x_j and δ_i = det x_i are exactly invariant to global rotation; real structures are recovered from the table.
 - **Scales.** d / √(0.75(n+m)), sim_long = S / (0.75 max(n, m)), d_fix / √(2n).
 - **Ensemble W₂.** Exact optimal transport with d² as the ground cost (a metric because d is a metric; an upper bound because sample-pair d is).
-- **PDB reader.** Residues with N, Cα, C and O; multiple MODELs as a batch; terminal caps (ACE, NME, NHE) removed; first altLoc; chain breaks are not checked (they appear as long edges).
+- **PDB reader.** Residues with N, Cα, C and O; multiple MODELs as a batch; terminal caps (ACE, NME, NHE) removed; first altLoc. Chain breaks are not checked when reading; they appear as long edges, and `is_break` flags edges longer than 4.2 Å (the criterion of the paper).
 
 Fixed in the paper (0.3.x):
 - **Matched and gap parts** (`parts`; the shared-bond and unshared-bond parts of the paper). At the optimal alignment d² splits exactly into a matched part Σ ‖x_i − U y_j‖² and an unmatched (gap) part (norms² of unmatched terms). The gap part contains indels *and* corresponding edges rotated by more than 120°. **Mean-normalized distance** D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1] is a metric at all lengths.
@@ -54,7 +54,7 @@ Not included: mapping interior points back to structures (no threshold has been 
 
 | Where | Values (default) |
 |---|---|
-| Coordinates | `l0` (3.83 Å), `cis_max` (3.45 Å), `caps`, `is_real(tol=1e-3)`, `n_edges(eps=1e-12)`, `from_table(eps=1e-12)` |
+| Coordinates | `l0` (3.83 Å), `cis_max` (3.45 Å), `break_min` (4.2 Å), `caps`, `is_real(tol=1e-3)`, `n_edges(eps=1e-12)`, `from_table(eps=1e-12)` |
 | Distance (`align`, `sq_distance`, `distance`) | `n_random` (127; 128 starts with the identity), `starts`, `iters` (10), `seed` (0), `improve_tol` (1e-7) |
 | Certificate (`bnb`) | `rel_tol` (0.005, sim_long units) or `tol` (absolute S), `n_starts` (128), `level0` (3), `n_refine` (16), `max_cells` (2,000,000), `batch`, `iters` (10), `device` |
 | Ensemble W₂ (`ensemble_w2`, `structure_costs`) | `chunk` (32), `device`, `dtype`, distance keywords, weights `wa`, `wb`, precomputed `cost` |
@@ -73,8 +73,8 @@ If you change `l0`, pass the same value when building coordinates and when readi
 framedchain is not on PyPI. Install it from the GitHub repository (a tagged version keeps results reproducible):
 
 ```
-pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.1"
-pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.1"   # with the extras
+pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.2"
+pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.2"   # with the extras
 ```
 
 or from a clone: `pip install -e .` (extras: `.[ot]` weighted transport with POT, otherwise scipy LP; `.[rulers]`
@@ -157,7 +157,7 @@ repository (see below), not by re-running this package.
 | Module | Contents |
 |---|---|
 | `geometry` | rotations, quaternions, Procrustes, polar decomposition |
-| `frames` | PDB reader, frames and coordinates from atoms, edge lengths, *cis*, real-structure test, Cα recovery |
+| `frames` | PDB reader, frames and coordinates from atoms, edge lengths, *cis* and chain-break flags, real-structure test, Cα recovery |
 | `distance` | correspondence DP, alternating optimization (batched, GPU), distance, d_fix, scales, zero padding |
 | `certify` | branch-and-bound certificate |
 | `operations` | column alignment, geodesic, mean point |
@@ -178,7 +178,7 @@ pip install -e .[test,rulers]
 pytest tests
 ```
 
-`tests/test_space.py` checks the definitions and properties on synthetic structures (quaternions, Procrustes, atom ↔ coordinate ↔ Cα round trips, PDB round trip, invariances, truncation and edge-shrink laws, triangle inequality, shortest geodesic, d_fix as an upper bound, scales, mean point, invariant table, certificate, optimal transport, ensemble W₂). `tests/test_paper_methods.py` checks the paper's computations (banded DP = blocked full DP, reduced computation equals the full computation and is an upper bound, band widening, Δ² = cross energy distance − mean floor for any distance, the ratio identity, Δμ²₂ = run-mean shift in Euclidean coordinates, null vs shifted ensembles, η₊, spread-profile invariance, projection, matched + gap = d², D̂, near-optimal sets, aligned-coordinate statistics). `tests/test_rulers.py` (skipped without numba) checks the ruler family. `tests/test_usage.py` checks the user-facing paths (numpy and mixed inputs, PDB files on disk, batching with zero padding, ensembles of different lengths). 46 tests, about a minute on a laptop CPU.
+`tests/test_space.py` checks the definitions and properties on synthetic structures (quaternions, Procrustes, atom ↔ coordinate ↔ Cα round trips, chain-break flags, PDB round trip, invariances, truncation and edge-shrink laws, triangle inequality, shortest geodesic, d_fix as an upper bound, scales, mean point, invariant table, certificate, optimal transport, ensemble W₂). `tests/test_paper_methods.py` checks the paper's computations (banded DP = blocked full DP, reduced computation equals the full computation and is an upper bound, band widening, Δ² = cross energy distance − mean floor for any distance, the ratio identity, Δμ²₂ = run-mean shift in Euclidean coordinates, null vs shifted ensembles, η₊, spread-profile invariance, projection, matched + gap = d², D̂, near-optimal sets, aligned-coordinate statistics). `tests/test_rulers.py` (skipped without numba) checks the ruler family. `tests/test_usage.py` checks the user-facing paths (numpy and mixed inputs, PDB files on disk, batching with zero padding, ensembles of different lengths). 47 tests, about a minute on a laptop CPU.
 
 ## Relation to the code that produced the paper
 
@@ -200,7 +200,9 @@ The paper's analyses ran on framespace 0.2.0 (this package under its earlier nam
 
 Frame-pair sampling order differs between scripts (seeds derived from domain names), so exact paper values are reproduced with the as-run scripts.
 
-On the same synthetic inputs (fixed seeds, CPU, float64), version 0.4.1 gives exactly the values of the as-run code — distances, alignments, certificates, mean points, ensemble W₂, the reduced computation and the energy statistics (zero difference; check of 2026-10-28, script `code/r44_repro.py` in framedchain-paper, run with checkouts of both repositories side by side).
+On the same synthetic inputs (fixed seeds, CPU, float64), version 0.4.1 gives exactly the values of the as-run code — distances, alignments, certificates, mean points, ensemble W₂, the reduced computation and the energy statistics (zero difference; check of 2026-10-28, script `code/r44_repro.py` in framedchain-paper, run with checkouts of both repositories side by side). Version 0.4.2 changes none of these computations: apart from
+docstrings, its code differs from 0.4.1 only by the added chain-break flag `is_break` (syntax trees compared module by
+module), and the 47 tests and the quick-start output give the same values.
 
 ## License and citation
 
@@ -217,7 +219,7 @@ MIT license, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper an
 @software{An2026framedchain,
   author  = {An, Hyeonsu},
   title   = {framedchain: framed chains for protein structures and ensembles of any length},
-  version = {0.4.1},
+  version = {0.4.2},
   year    = {2026},
   url     = {https://github.com/gaony571/framedchain}
 }

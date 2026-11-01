@@ -1,4 +1,4 @@
-# framedchain 0.4.1 — API reference
+# framedchain 0.4.2 — API reference
 
 Generated from the docstrings by `tools/make_api_doc.py`. Every name listed here except the `rulers` module is
 importable from the top level (`import framedchain as fc; fc.distance(...)`); `rulers` needs numba and is
@@ -16,7 +16,7 @@ Backbone atoms -> coordinates of the space.
 
 Edge i is Cα_i → Cα_{i+1}. Its frame R_i = [T, U, V] (columns):
   T = direction of the edge, U = C=O direction of the peptide bond across the edge with its T component removed and
-  normalised, V = T × U.
+  normalized, V = T × U.
 Coordinates are x_i = s_i · R_i / 2, s_i = l_i / l0 (l_i is the edge length; default l0 = 3.83 Å). The squared norm is 0.75 s_i².
 The first column times 2·l0 is the edge vector, so the Cα positions are recovered from the coordinates alone.
 
@@ -48,6 +48,11 @@ Whether each term has the form s·R/2 (s > 0, R a rotation). Zero terms and gene
 
 (Non-zero) terms whose edge length is shorter than cis_max.
 
+### `is_break(x, break_min=4.2, l0=3.83)`
+
+Terms whose edge length exceeds break_min (4.2 Å by default). Consecutive Cα are about 3.8 Å (trans) or 3.1 Å (cis)
+apart, so a longer edge joins residues on either side of a gap in the chain.
+
 ### `n_edges(x, eps=1e-12)`
 
 Number of non-zero terms (the stratum of a point (n, 3, 3)). Terms with squared norm ≤ eps count as zero.
@@ -60,7 +65,7 @@ Coordinates (..., n, 3, 3) -> Cα (..., n+1, 3), first Cα at the origin. A zero
 
 PDB (several MODELs allowed) -> dict(N, CA, C, O: (F, L, 3), resnames). Keeps residues with all four atoms and
 drops the residues in caps (terminal caps). For several altLocs the first one is used. Residues are joined in file
-order; chain breaks are not checked (they appear as long edges).
+order; chain breaks are not checked here (they appear as long edges, which is_break flags).
 
 ### `coordinates_from_pdb(path, l0=3.83, caps=('ACE', 'NME', 'NHE'))`
 
@@ -121,7 +126,7 @@ batches (P, n, 3, 3), (P, m, 3, 3) zero-padded to a common length; numpy arrays 
 ### `fixed_sq_distance(x, y, kx=None, ky=None)`
 
 When the correspondence is known: d_fix² with the correspondence (kx ↔ ky; default: edge index to edge index)
-fixed and only the rotation optimised; exact with one SVD.
+fixed and only the rotation optimized; exact with one SVD.
 All pairs of batches x (I, n, 3, 3), y (J, m, 3, 3) -> (I, J). An upper bound on d.
 
 ### `length_scaled(d, n, m)`
@@ -130,7 +135,7 @@ d / √(0.75 (n + m)): between 0 and 1. For tables of pairs of different lengths
 
 ### `sim_long(S, n, m)`
 
-S / (0.75 max(n, m)): similarity normalised by the longer structure.
+S / (0.75 max(n, m)): similarity normalized by the longer structure.
 
 ### `fixed_scaled(d_fix, n)`
 
@@ -147,7 +152,7 @@ Certificate of the global optimum (branch and bound over rotations).
 For terms of real structures x_k = s_k R_k / 2, the score of a term pair is ⟨x_k, U y_l⟩ = s_k t_l (⟨c_kl, u⟩² − 1/4)
 (c_kl = q_k ⊗ conj(p_l) is the quaternion of the two frames, u is the quaternion of U, s and t are length ratios).
 If the rotation-vector cube [−π, π]³ is divided into cubic cells, every rotation in a cell lies within the angle
-ρ = √3 σ / 2 on S³ of the cell centre u0, so
+ρ = √3 σ / 2 on S³ of the cell center u0, so
 score ≤ s_k t_l (cos²(max(0, φ0 − ρ)) − 1/4)   (φ0 = arccos|⟨c, u0⟩|; the inequality holds because length ratios are positive).
 The correspondence DP is monotone in the scores, so this gives an upper bound for the cell. Cells whose upper bound is
 below the best value + tolerance are discarded and the remaining cells are split into 8.
@@ -186,7 +191,7 @@ Aligns each structure of an equal-length ensemble E (F, n, 3, 3) to ref (n, 3, 3
 
 Mean point of a same-protein ensemble E (F, n, 3, 3): repeatedly align every structure to the mean with one
 rotation and average column by column. The correspondence is fixed (edge index to edge index); this is an
-alternating minimisation of Σ_f d_fix(E_f, m)² (both steps have closed forms and the objective never increases).
+alternating minimization of Σ_f d_fix(E_f, m)² (both steps have closed forms and the objective never increases).
 Stops when the mean moves by at most tol × (1 + ‖m‖) in one step. start: index of the starting structure, or a point (n, 3, 3).
 The mean point is a point of the space but not a real structure (how much the singular values of a term shrink
 reflects the spread of that edge). Means of structures of different lengths are not defined here.
@@ -247,7 +252,7 @@ Returns dict(W2, W2sq, plan, cost).
 
 ## `parts`
 
-Splitting and normalising the distance.
+Splitting and normalizing the distance.
 
 Matched part and gap part. At an optimal alignment (π, U)
     d² = Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{unmatched i} ‖x_i‖² + Σ_{unmatched j} ‖y_j‖²  =  matched part + gap part
@@ -256,7 +261,7 @@ alignment breaks such a match: the gap part contains not only insertions and del
 in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
 The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
-Mean normalisation. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
+Mean normalization. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
 unit sphere of a Hilbert space).
 
 ### `split_sq_distance(x, y, alignment=None, **kw)`
@@ -268,7 +273,7 @@ Returns dict: d2, matched (matched part), gap (gap part), n_matched (number of m
 
 ### `normalized_distance(x, y, d=None, **kw)`
 
-Mean-normalised distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound).
+Mean-normalized distance D̂ = d / √(‖x‖² + ‖y‖²) ∈ [0, 1]. Without d, the distance is computed (upper bound).
 
 ### `near_optimal_alignments(x, y, eps=0.005, n_random=127, iters=10, seed=0, improve_tol=1e-07)`
 
@@ -289,7 +294,7 @@ The reduced computation: mean-point starts and band-limited DP. Used to compute 
 same-protein ensembles.
 
 Banded DP. The maximum score of an order-preserving partial correspondence whose matches are restricted to the band
-B = {(i, j): lo_i ≤ j < lo_i + w}. If lo never decreases (the centre line is monotone), storing only the band cells of
+B = {(i, j): lo_i ≤ j < lo_i + w}. If lo never decreases (the center line is monotone), storing only the band cells of
 each row is exact:
   F_i[j] (j 1-based, y[:j]) equals F_{i−1}[j] for j < lo_i, and equals F_{i−1}[lo_{i−1} + w] for j > lo_{i−1} + w
   (the bands of earlier rows lie no further right). So the previous row's band values are moved over, extended to the
@@ -310,12 +315,12 @@ red_pairs in code/r38_s0.py of the framedchain-paper repository).
 
 ### `center_path(match, m)` *(tensor)*
 
-Matches between the mean points (n, m) bool -> centre column per row (n,) (monotone). Unmatched rows are filled
-linearly between the neighbouring matched columns.
+Matches between the mean points (n, m) bool -> center column per row (n,) (monotone). Unmatched rows are filled
+linearly between the neighboring matched columns.
 
 ### `band_windows(center, m, k)` *(tensor)*
 
-Centre columns (n,) and half-width k -> left ends of the band lo (n,) (non-decreasing) and width w = min(2k+1, m).
+Center columns (n,) and half-width k -> left ends of the band lo (n,) (non-decreasing) and width w = min(2k+1, m).
 
 ### `dp_score_band(Kb, lo)` *(tensor)*
 
@@ -368,7 +373,7 @@ diagnosed by the positive-eigenvalue fraction η₊ of J D J (eta_plus).
 ratio = 1 separates the near and far regimes (Δ²/√n = 2(√2 − 1) w̄/√n). The main statistic is Δ²/√n̄.
     Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2) / number of edges   (C₂, B₂ are means of squared distances; exponent-2 energy statistic, mean shift)
 In aligned (Euclidean) coordinates Δμ²₂ equals the mean shift between run means exactly (the spread terms cancel);
-over D it is the generalisation.
+over D it is the generalization.
 
 Estimation is an incomplete U-statistic: for each run pair the reduced-computation distances (reduced) of k frame
 pairs (default 2,000, without replacement) are averaged. All same-sequence cells of the paper computed by D use this
@@ -436,7 +441,7 @@ such edges from both the control and the response).
 ### `edge_spread_profile(F, idx, iters=3)`
 
 Per-edge spread profile on shared edges. F (N, n, 3, 3) are coordinates of one protein ensemble (aligned to its
-mean point); idx are the shared edge indices. Generalised Procrustes (rotations only, around the own mean) on the
+mean point); idx are the shared edge indices. Generalized Procrustes (rotations only, around the own mean) on the
 shared edges for `iters` rounds, then the mean squared scatter around the mean per edge -> (len(idx),).
 
 ### `dynamics_similarity(Fa, Fb, pairs, iters=3)`
@@ -516,7 +521,7 @@ D_TM. Feature of residue i: P_i (the Cα position); δ(a, b) = f(‖a − b‖/d
 f(0) = 0, hence a metric); c² = 1/2.
     1 − δ² = 1/(1 + r²) is the TM residue score, so D_TM² = (n + m)/2 − S_TM,  S_TM = max Σ_{(i,j)∈π} 1/(1 + r_ij²).
   At fixed d₀ it is a metric (the objective of TM-align = D_TM at fixed d₀). TM-score adds d₀ = d₀(L), division by a
-  length and the 1 − S transform; the non-metric behaviour of 1 − TM comes from the shorter-length normalisation and the
+  length and the 1 − S transform; the non-metric behavior of 1 − TM comes from the shorter-length normalization and the
   1 − S transform (the TM factorial design of the paper).
 
 Computation. For a fixed pose (U, t) the correspondence is exact by dynamic programming. For a fixed correspondence

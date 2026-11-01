@@ -46,7 +46,7 @@ def align_to_reference(E, ref):
 def mean_point(E, tol=1e-10, max_iters=100, start=0, return_info=False):
     """Mean point of a same-protein ensemble E (F, n, 3, 3): repeatedly align every structure to the mean with one
     rotation and average column by column. The correspondence is fixed (edge index to edge index); this is an
-    alternating minimisation of Σ_f d_fix(E_f, m)² (both steps have closed forms and the objective never increases).
+    alternating minimization of Σ_f d_fix(E_f, m)² (both steps have closed forms and the objective never increases).
     Stops when the mean moves by at most tol × (1 + ‖m‖) in one step. start: index of the starting structure, or a point (n, 3, 3).
     The mean point is a point of the space but not a real structure (how much the singular values of a term shrink
     reflects the spread of that edge). Means of structures of different lengths are not defined here.

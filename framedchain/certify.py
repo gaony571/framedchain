@@ -3,7 +3,7 @@
 For terms of real structures x_k = s_k R_k / 2, the score of a term pair is ⟨x_k, U y_l⟩ = s_k t_l (⟨c_kl, u⟩² − 1/4)
 (c_kl = q_k ⊗ conj(p_l) is the quaternion of the two frames, u is the quaternion of U, s and t are length ratios).
 If the rotation-vector cube [−π, π]³ is divided into cubic cells, every rotation in a cell lies within the angle
-ρ = √3 σ / 2 on S³ of the cell centre u0, so
+ρ = √3 σ / 2 on S³ of the cell center u0, so
 score ≤ s_k t_l (cos²(max(0, φ0 − ρ)) − 1/4)   (φ0 = arccos|⟨c, u0⟩|; the inequality holds because length ratios are positive).
 The correspondence DP is monotone in the scores, so this gives an upper bound for the cell. Cells whose upper bound is
 below the best value + tolerance are discarded and the remaining cells are split into 8.

@@ -11,7 +11,7 @@ from framedchain import reduced as rd
 
 
 def chain(n, seed, noise=0.15):
-    """A real structure (n, 3, 3) = s R / 2 whose neighbouring edges have similar rotations."""
+    """A real structure (n, 3, 3) = s R / 2 whose neighboring edges have similar rotations."""
     g = torch.Generator().manual_seed(seed)
     step = fc.expmap(torch.tensor([0.3, 1.2, 0.4], dtype=torch.float64))
     R = [torch.eye(3, dtype=torch.float64)]
@@ -41,7 +41,7 @@ def insert_edge(base, p, seed=0):
 # ---------- reduced computation ----------
 
 def test_band_equals_masked_full_dp():
-    """The banded DP equals the full DP with matches outside the band blocked (for a monotone centre line)."""
+    """The banded DP equals the full DP with matches outside the band blocked (for a monotone center line)."""
     rng = np.random.default_rng(0)
     for trial in range(20):
         n, m, k = rng.integers(5, 25), rng.integers(5, 25), int(rng.integers(1, 4))
@@ -84,7 +84,7 @@ def test_pair_scores_matches_full_and_is_upper_bound(two_ensembles):
 
 
 def test_pair_scores_widens_when_needed():
-    """Shifting the centre line by the half-width makes the optimal path touch the band edge; widening corrects it."""
+    """Shifting the center line by the half-width makes the optimal path touch the band edge; widening corrects it."""
     base = chain(25, 5)
     A, B = ensemble(base, 4, 1), ensemble(base, 4, 2)
     ms = rd.MeanStart(A, B)
@@ -181,7 +181,7 @@ def test_project_to_real():
     assert np.allclose(np.linalg.norm(P3[:, :, 0], axis=-1) * 2, s)
 
 
-# ---------- matched/gap split and mean normalisation ----------
+# ---------- matched/gap split and mean normalization ----------
 
 def test_split_sq_distance():
     a = chain(20, 51)

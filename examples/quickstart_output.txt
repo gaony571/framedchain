@@ -2,5 +2,5 @@ x: 39 edges, y: 45 edges
 distance d(x, y)      = 5.5097   (30 matched edges)
 certified             = True  (S in [15.8303, 15.9990])
 matched + gap parts   = 12.6372 + 17.7191 = d^2 = 30.3563
-normalised D_hat      = 0.6996  (in [0, 1])
+normalized D_hat      = 0.6996  (in [0, 1])
 ensemble D2/sqrt(n)   = 0.0223  (D2 = 0.1391, ratio = 0.337)

@@ -102,7 +102,7 @@ def test_wl_identity_self_and_limit():
 
 
 def test_optimized_triangle_small():
-    """Triangle inequality on the optimised values of 8 small chains (fixed d₀ and fixed ℓ). The computed values are upper bounds, so a violation can only be an optimisation error."""
+    """Triangle inequality on the optimized values of 8 small chains (fixed d₀ and fixed ℓ). The computed values are upper bounds, so a violation can only be an optimization error."""
     S = [backbone(int(n), 20 + k) for k, n in enumerate([14, 16, 18, 15, 20, 17, 13, 19])]
     N = len(S)
     Dt, Dw = np.zeros((N, N)), np.zeros((N, N))
@@ -119,7 +119,7 @@ def test_linear_form_is_not_a_metric():
     triangle inequality. b moves 10 positions of a by 0.5 d₀ and c moves them twice as far in the same direction: for
     each pair δ²(2r) > 2 δ²(r) (r² < 1/2), so the linear form breaks while the square-root form holds.
     ab and bc use the cost of the identity correspondence (an upper bound of the true value), which understates the
-    violation. ac is an optimised value (an upper bound), so it is a violation unless the true optimum is more than 15% lower."""
+    violation. ac is an optimized value (an upper bound), so it is a violation unless the true optimum is more than 15% lower."""
     A, _ = backbone(60, 31)
     rng = np.random.default_rng(5)
     idx = np.linspace(3, 56, 10).round().astype(int)

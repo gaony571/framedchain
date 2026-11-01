@@ -3,7 +3,7 @@
     python examples/quickstart.py
 
 It builds two small synthetic backbones (Cα, C, O atoms), turns them into coordinates of the space, and shows the
-distance, its certificate, the matched/gap split, the normalised distance, and the energy statistic between two
+distance, its certificate, the matched/gap split, the normalized distance, and the energy statistic between two
 small ensembles. Replace `synthetic_backbone` with `fc.coordinates_from_pdb('your.pdb')` for real structures.
 """
 import numpy as np
@@ -38,7 +38,7 @@ def main():
     print(f'certified             = {cert["certified"]}  (S in [{cert["S_lb"]:.4f}, {cert["S_ub"]:.4f}])')
     sp = fc.split_sq_distance(x, y, alignment=al)
     print(f'matched + gap parts   = {float(sp["matched"]):.4f} + {float(sp["gap"]):.4f} = d^2 = {float(d) ** 2:.4f}')
-    print(f'normalised D_hat      = {float(fc.normalized_distance(x, y, d=d)):.4f}  (in [0, 1])')
+    print(f'normalized D_hat      = {float(fc.normalized_distance(x, y, d=d)):.4f}  (in [0, 1])')
 
     # ensembles: 3 runs × 20 frames each, frames concatenated run by run
     def runs(base, sigma, seed):
