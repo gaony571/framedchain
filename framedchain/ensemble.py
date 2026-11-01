@@ -1,7 +1,7 @@
 """Ensemble statistics: the energy statistic over the distance, its components, and spread profiles on shared edges.
 
 For runs (independent replicates) P_1..P_r and Q_1..Q_s, C = mean distance over cross run pairs, and B_P, B_Q = mean
-distance over pairs of different runs on the same side.
+distance over pairs of different runs on the same side. Symbols of the paper: ratio is κ, and B_Q is B_P′.
     Δ² = 2C − B_P − B_Q  (= cross energy distance − (floor_P + floor_Q)/2; within-run mean distances cancel)
 Because the energy distance is a symmetric bilinear form in the difference of measures, Δ² is an unbiased estimator of
 its population counterpart, defined by the expected frame distribution of one run on each side, when runs are

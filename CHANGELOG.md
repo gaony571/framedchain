@@ -4,6 +4,10 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 
 ## Unreleased (documentation only)
 
+- Docstring corrections, with `docs/API.md` regenerated: `distance` names its 128 default starts as the identity and
+  127 random rotations; `reduced` says that the half-width of 20 was chosen after the bias check by a rule fixed in a
+  later record (S2 Text 2 of the paper); `ensemble` and the README map ratio to κ and B_Q to B_P′ of the paper. No
+  code changed.
 - Docstrings, comments and the README in the paper's terms, with `docs/API.md` regenerated: the README shows Fig 1 as
   redrawn for the paper (`docs/framed_chains.png`) with the paper's caption; "normalized distance D̂" for
   "mean-normalized", "intersection of near-optimal alignments" for "joint gate", "factorial comparison" for "factorial

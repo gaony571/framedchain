@@ -81,8 +81,8 @@ the left by the same rotation, gives the same point.
                Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{i unmatched} ‖x_i‖² + Σ_{j unmatched} ‖y_j‖²
              = ‖x‖² + ‖y‖² − 2 S,   S = max Σ_{(i,j)∈π} ⟨x_i, U y_j⟩
 Computation: for a fixed rotation the correspondence is exact by dynamic programming; for a fixed correspondence the
-rotation is exact by a 3×3 SVD. The two are alternated from several random start rotations (128 by default) and the
-best is kept. The computed value is an upper bound on d; certify.bnb certifies the global optimum.
+rotation is exact by a 3×3 SVD. The two are alternated from the identity and 127 random start rotations (128 starts by
+default) and the best is kept. The computed value is an upper bound on d; certify.bnb certifies the global optimum.
 
 ### `dp_score(K)` *(tensor)*
 
@@ -311,7 +311,8 @@ sample k to its own mean computed in advance, the start rotation of the pair (k,
 
 Every ensemble computation of the paper follows this rule: 128 starts between the mean points, one start per sample
 pair, band half-width 5 at first (20 for the pairs of the comparison across sequences with TM-score below 0.3, the
-setting chosen by the paper's pre-specified rule after its bias check) and doubled (up to the number of columns) only
+setting chosen after the bias check by the rule fixed in a later record, before the re-measurement; S2 Text 2 of the
+paper) and doubled (up to the number of columns) only
 for pairs touching the band edge, float64. The functions here are the same computation as the code that ran
 (framespace_wip/stage0/band.py and red_pairs in code/r38_s0.py of the framedchain-paper repository).
 
@@ -365,7 +366,7 @@ want_gap, otherwise None), S (P,), half_width (P,) final half-width, widened (nu
 Ensemble statistics: the energy statistic over the distance, its components, and spread profiles on shared edges.
 
 For runs (independent replicates) P_1..P_r and Q_1..Q_s, C = mean distance over cross run pairs, and B_P, B_Q = mean
-distance over pairs of different runs on the same side.
+distance over pairs of different runs on the same side. Symbols of the paper: ratio is κ, and B_Q is B_P′.
     Δ² = 2C − B_P − B_Q  (= cross energy distance − (floor_P + floor_Q)/2; within-run mean distances cancel)
 Because the energy distance is a symmetric bilinear form in the difference of measures, Δ² is an unbiased estimator of
 its population counterpart, defined by the expected frame distribution of one run on each side, when runs are

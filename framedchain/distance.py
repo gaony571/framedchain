@@ -6,8 +6,8 @@ the left by the same rotation, gives the same point.
                Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{i unmatched} ‖x_i‖² + Σ_{j unmatched} ‖y_j‖²
              = ‖x‖² + ‖y‖² − 2 S,   S = max Σ_{(i,j)∈π} ⟨x_i, U y_j⟩
 Computation: for a fixed rotation the correspondence is exact by dynamic programming; for a fixed correspondence the
-rotation is exact by a 3×3 SVD. The two are alternated from several random start rotations (128 by default) and the
-best is kept. The computed value is an upper bound on d; certify.bnb certifies the global optimum.
+rotation is exact by a 3×3 SVD. The two are alternated from the identity and 127 random start rotations (128 starts by
+default) and the best is kept. The computed value is an upper bound on d; certify.bnb certifies the global optimum.
 """
 import math
 from dataclasses import dataclass

@@ -18,7 +18,8 @@ sample k to its own mean computed in advance, the start rotation of the pair (k,
 
 Every ensemble computation of the paper follows this rule: 128 starts between the mean points, one start per sample
 pair, band half-width 5 at first (20 for the pairs of the comparison across sequences with TM-score below 0.3, the
-setting chosen by the paper's pre-specified rule after its bias check) and doubled (up to the number of columns) only
+setting chosen after the bias check by the rule fixed in a later record, before the re-measurement; S2 Text 2 of the
+paper) and doubled (up to the number of columns) only
 for pairs touching the band edge, float64. The functions here are the same computation as the code that ran
 (framespace_wip/stage0/band.py and red_pairs in code/r38_s0.py of the framedchain-paper repository).
 """
