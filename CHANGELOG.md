@@ -75,7 +75,7 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 
 ## 0.3.2 (2026-10-26)
 
-- Docstrings, comments and messages translated into English; code unchanged (AST comparison against 0.3.1).
+- Docstrings, comments and messages translated into English; code unchanged apart from the message strings (AST comparison against 0.3.1).
 - License metadata as an SPDX expression (`license = "MIT"`, `license-files`).
 
 ## 0.3.1 (2026-10-26)
