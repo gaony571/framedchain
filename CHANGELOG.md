@@ -2,7 +2,7 @@
 
 framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use the old name.
 
-## Unreleased (documentation only)
+## 0.4.3 (2026-11-02, documentation only)
 
 - Docstring and README corrections, with `docs/API.md` regenerated: the gap part *can* contain corresponding edges
   rotated by more than 120° (such an edge is unmatched unless it is matched to another partner), as narrowed in the

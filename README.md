@@ -77,8 +77,8 @@ If you change `l0`, pass the same value when building coordinates and when readi
 framedchain is not on PyPI. Install it from the GitHub repository (a tagged version keeps results reproducible):
 
 ```
-pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.2"
-pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.2"   # with the extras
+pip install "framedchain @ git+https://github.com/gaony571/framedchain@v0.4.3"
+pip install "framedchain[ot,rulers,test] @ git+https://github.com/gaony571/framedchain@v0.4.3"   # with the extras
 ```
 
 or from a clone: `pip install -e .` (extras: `.[ot]` weighted transport with POT, otherwise scipy LP; `.[rulers]`
@@ -204,9 +204,9 @@ The paper's analyses ran on framespace 0.2.0 (this package under its earlier nam
 
 Frame-pair sampling order differs between scripts (seeds derived from domain names), so exact paper values are reproduced with the as-run scripts.
 
-On the same synthetic inputs (fixed seeds, CPU, float64), version 0.4.1 gives exactly the values of the as-run code — distances, alignments, certificates, mean points, ensemble W₂, the reduced computation and the energy statistics (zero difference; check of 2026-10-28, script `code/r44_repro.py` in framedchain-paper, run with checkouts of both repositories side by side). Version 0.4.2 changes none of these computations: apart from
-docstrings, its code differs from 0.4.1 only by the added chain-break flag `is_break` (syntax trees compared module by
-module), and the 47 tests and the quick-start output give the same values.
+On the same synthetic inputs (fixed seeds, CPU, float64), version 0.4.1 gives exactly the values of the as-run code — distances, alignments, certificates, mean points, ensemble W₂, the reduced computation and the energy statistics (zero difference; check of 2026-10-28, script `code/r44_repro.py` in framedchain-paper, run with checkouts of both repositories side by side). Versions 0.4.2 and 0.4.3 change none of these computations: apart from
+docstrings, their code differs from 0.4.1 only by the chain-break flag `is_break` added in 0.4.2 (syntax trees compared
+module by module), and the 47 tests and the quick-start output give the same values.
 
 ## License and citation
 
@@ -223,7 +223,7 @@ MIT license, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper an
 @software{An2026framedchain,
   author  = {An, Hyeonsu},
   title   = {framedchain: framed chains for protein structures and ensembles of any length},
-  version = {0.4.2},
+  version = {0.4.3},
   year    = {2026},
   url     = {https://github.com/gaony571/framedchain}
 }
