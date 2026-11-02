@@ -24,7 +24,7 @@ f₁ with a tick along f₂, both scaled with the term; blue, shared bonds (soli
 correspondence); orange, unshared bonds; open circles, zero matrices (in B, marked 0 and joined by a dotted line to the
 unmatched bond that faces each). The lower chain in (B) is drawn after the global rotation U.
 
-The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (submitted). It was called framespace up to version 0.3.3 (same
+The package accompanies the paper *Comparing protein conformational ensembles across sequences and lengths* (manuscript). It was called framespace up to version 0.3.3 (same
 computations; see `CHANGELOG.md`).
 
 This package contains (i) the definitions and proven properties of the space, and (ii) the computations and estimators that were fixed and used in the accompanying paper (reduced alignment, energy statistics, shared-edge spread profiles, matched/gap decomposition, and the distance D_TM of the TM-align objective at fixed d₀). Pre-specified decision rules, statistical tests (bootstrap, partial rank correlation, …), data readers (mdCATH, ATLAS) and research-stage tools that were not fixed (floor-bias fits, the column-wise mean/spread decomposition of W₂ in aligned coordinates, soft correspondences, barycenters) are *not* included (the mean-shift and spread terms of κ² used in the paper are those of `component_ratio`); the analysis scripts of the paper live in the companion reproduction repository.
@@ -217,7 +217,7 @@ MIT license, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper an
   author = {An, Hyeonsu},
   title  = {Comparing protein conformational ensembles across sequences and lengths},
   year   = {2026},
-  note   = {Manuscript submitted}
+  note   = {Manuscript}
 }
 
 @software{An2026framedchain,

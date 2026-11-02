@@ -4,6 +4,8 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 
 ## 0.4.3 (2026-11-02, documentation only)
 
+- The `ensemble` docstring lists `n_edges` among the returned values; the README and `CITATION.cff` call the paper a
+  manuscript. No code changed.
 - Docstring and README corrections, with `docs/API.md` regenerated: the gap part *can* contain corresponding edges
   rotated by more than 120° (such an edge is unmatched unless it is matched to another partner), as narrowed in the
   paper (`parts`, README); the `ensemble` docstring calls the distance d, as the paper does; the README says that

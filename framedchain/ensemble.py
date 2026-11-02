@@ -96,7 +96,7 @@ def ensemble_statistic(EA, EB, n_per_run, k=2000, seed=0, n_edges=None, rng=None
     concatenated in run order (EB likewise). Cross = all run pairs (a, b); floors = pairs of different runs on one side.
     k frame pairs per run pair, reduced computation (reduced).
     n_edges: number of edges for Δ²/√n̄ and Δμ²₂ (default: mean column count of the two sides; pass it if there are zero terms).
-    Returns the energy_stats dict + dmu2 (Δμ²₂) + n_runs_P, n_runs_Q + runs (run-pair means)."""
+    Returns the energy_stats dict + dmu2 (Δμ²₂) + n_runs_P, n_runs_Q + n_edges + runs (run-pair means)."""
     rng = np.random.default_rng(seed) if rng is None else rng
     EA = torch.as_tensor(EA)
     EB = torch.as_tensor(EB).to(EA)

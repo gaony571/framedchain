@@ -425,7 +425,7 @@ One cell between two ensembles. EA ((number of runs × n_per_run), n, 3, 3) hold
 concatenated in run order (EB likewise). Cross = all run pairs (a, b); floors = pairs of different runs on one side.
 k frame pairs per run pair, reduced computation (reduced).
 n_edges: number of edges for Δ²/√n̄ and Δμ²₂ (default: mean column count of the two sides; pass it if there are zero terms).
-Returns the energy_stats dict + dmu2 (Δμ²₂) + n_runs_P, n_runs_Q + runs (run-pair means).
+Returns the energy_stats dict + dmu2 (Δμ²₂) + n_runs_P, n_runs_Q + n_edges + runs (run-pair means).
 
 ### `eta_plus(D)`
 
