@@ -4,6 +4,11 @@ framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use t
 
 ## Unreleased (documentation only)
 
+- Docstring and README corrections, with `docs/API.md` regenerated: the gap part *can* contain corresponding edges
+  rotated by more than 120° (such an edge is unmatched unless it is matched to another partner), as narrowed in the
+  paper (`parts`, README); the `ensemble` docstring calls the distance d, as the paper does; the README says that
+  0.3.2 also translated the error messages; `docs/framed_chains.png` is the paper's Fig 1 as redrawn on 2026-11-02.
+  No code changed.
 - Docstring corrections, with `docs/API.md` regenerated: `distance` names its 128 default starts as the identity and
   127 random rotations; `reduced` says that the half-width of 20 was chosen after the bias check by a rule fixed in a
   later record (S2 Text 2 of the paper); `ensemble` and the README map ratio to κ and B_Q to B_P′ of the paper. No

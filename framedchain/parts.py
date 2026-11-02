@@ -3,8 +3,9 @@
 Matched part and gap part. At an optimal alignment (π, U)
     d² = Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{unmatched i} ‖x_i‖² + Σ_{unmatched j} ‖y_j‖²  =  matched part + gap part
 exactly. Replacing one match by two gaps lowers the cost when θ > 120° (whatever the length ratio), so the optimal
-alignment breaks such a match: the gap part contains not only insertions and deletions but also edges that correspond
-in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
+alignment breaks such a match: the gap part can contain not only insertions and deletions but also edges that
+correspond in sequence and are rotated by more than 120°, unless such an edge is matched to another partner (gap part ≠
+number of insertions).
 The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
 Normalized distance. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the

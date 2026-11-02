@@ -257,8 +257,9 @@ Splitting and normalizing the distance.
 Matched part and gap part. At an optimal alignment (π, U)
     d² = Σ_{(i,j)∈π} ‖x_i − U y_j‖² + Σ_{unmatched i} ‖x_i‖² + Σ_{unmatched j} ‖y_j‖²  =  matched part + gap part
 exactly. Replacing one match by two gaps lowers the cost when θ > 120° (whatever the length ratio), so the optimal
-alignment breaks such a match: the gap part contains not only insertions and deletions but also edges that correspond
-in sequence and are rotated by more than 120° (gap part ≠ number of insertions).
+alignment breaks such a match: the gap part can contain not only insertions and deletions but also edges that
+correspond in sequence and are rotated by more than 120°, unless such an edge is matched to another partner (gap part ≠
+number of insertions).
 The split depends on the alignment, so when several alignments are nearly optimal their variation is reported separately.
 
 Normalized distance. D̂ = d / √(‖x‖² + ‖y‖²) is a metric at every length with values in [0, 1] (embedding in the
@@ -370,7 +371,7 @@ distance over pairs of different runs on the same side. Symbols of the paper: ra
     Δ² = 2C − B_P − B_Q  (= cross energy distance − (floor_P + floor_Q)/2; within-run mean distances cancel)
 Because the energy distance is a symmetric bilinear form in the difference of measures, Δ² is an unbiased estimator of
 its population counterpart, defined by the expected frame distribution of one run on each side, when runs are
-independent and identically distributed, whatever the negative type of the ground distance (D is not of negative
+independent and identically distributed, whatever the negative type of the ground distance (d is not of negative
 type). What is lost is only the guarantee ℰ_D ≥ 0; on real samples this is diagnosed by the positive-eigenvalue
 fraction η₊ of J D J (eta_plus).
     w̄ = (B_P + B_Q)/2,  ratio = √((C/w̄)² − 1) = √((Δ²/(2w̄) + 1)² − 1)  (the signal-to-noise that follows exactly from cross ÷ within distances)
@@ -378,12 +379,12 @@ ratio = 1 lies between the near and far limits, inside the crossing band of the 
 0.5–2; far: ratio > 2); there Δ²/√n = 2(√2 − 1) w̄/√n. The main statistic is Δ²/√n̄.
     Δμ²₂ = (C₂ − (B₂_P + B₂_Q)/2) / number of edges   (C₂, B₂ are means of squared distances; exponent-2 energy statistic, mean shift)
 In aligned (Euclidean) coordinates Δμ²₂ equals the mean shift between run means exactly (the spread terms cancel);
-over D it is the generalization.
+over d it is the generalization.
 
 Estimation is an incomplete U-statistic: for each run pair the reduced-computation distances (reduced) of k frame
-pairs (default 2,000, without replacement) are averaged. All same-sequence cells of the paper computed by D use this
+pairs (default 2,000, without replacement) are averaged. All same-sequence cells of the paper computed with d use this
 (runpair_means and estats in code/r38_s0.py, code/r38_e7_30.py of the framedchain-paper repository). Pairs of
-different length use the same formula (the ground distance D is the same everywhere).
+different length use the same formula (the ground distance d is the same everywhere).
 
 ### `energy_stats(C, B_P, B_Q, n_edges=None)`
 
