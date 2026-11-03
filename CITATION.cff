@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below and the accompanying paper, \"Comparing protein conformational ensembles across sequences and lengths\" (manuscript)."
 title: "framedchain: framed chains for protein structures and ensembles of any length"
 version: 0.4.3
+doi: 10.5281/zenodo.23911383
 license: MIT
 type: software
 abstract: "Framed chains: a metric space for protein structures and ensembles of any length. Each virtual Calpha-Calpha bond becomes a 3x3 matrix, the orthonormal frame of the bond and its peptide plane scaled by bond length; an absent bond is the zero matrix. The package computes the order-preserving edit-distance metric across lengths with branch-and-bound certification, its exact split into shared-bond and unshared-bond parts, mean points and geodesics, and energy statistics for ensembles."

@@ -225,6 +225,7 @@ MIT license, copyright (c) 2026 Hyeonsu An (`LICENSE`). Please cite the paper an
   title   = {framedchain: framed chains for protein structures and ensembles of any length},
   version = {0.4.3},
   year    = {2026},
+  doi     = {10.5281/zenodo.23911383},
   url     = {https://github.com/gaony571/framedchain}
 }
 ```
