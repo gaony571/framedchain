@@ -2,7 +2,7 @@
 
 framedchain was called framespace up to version 0.3.3; entries below 0.4.0 use the old name.
 
-## 0.4.3 (2026-11-02, documentation only)
+## 0.4.3 (2026-11-03, documentation only)
 
 - The `ensemble` docstring lists `n_edges` among the returned values; the README and `CITATION.cff` call the paper a
   manuscript. No code changed.
